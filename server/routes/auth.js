@@ -5,9 +5,9 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 router.post('/signup',async(req,res)=>{
-	const { fullname,email,password} = req.body;
-	if(!fullname || !password || !email){
-		res.status(400).json({message:"All fields are mandatory"});
+	const { fullName,email,password} = req.body;
+	if(!fullName || !password || !email){
+		return res.status(400).json({message:"All fields are mandatory"});
 	}
 
 try{
@@ -32,7 +32,7 @@ await user.save();
 //create text based token (jwt)
 const payload = {userId:user.id};
 const token = jwt.sign(payload,process.env.JWT_SECRET,{expiresIn:'5d'});
-res.status(201).json({token,user:{id:user.id,fullname,email}});
+res.status(201).json({token,user:{id:user.id,fullName,email}});
 }
 catch(err){
 	console.error(err.message);
@@ -58,9 +58,9 @@ router.post('/login',async(req,res)=>{
 			return res.status(400).json({message:"Invalid Password or invalid email id"});
 		}
 		const payload = {userId:user.id};
-		const token = jwt.sign(payload,process.env.JWT.SECRET,{expiresIn:'5d'});
+		const token = jwt.sign(payload,process.env.JWT_SECRET,{expiresIn:'5d'});
 
-		res.json({token,user:{id:user.id,fullname,email}});
+		res.json({token,user:{id:user.id,fullName:user.fullName,email}});
 	}
 	catch(err){
 		console.error(err.message);

@@ -4,10 +4,10 @@
 ---
 
 ## 📌 Project Status
-**Backend Foundation: ✅ Complete**
+**Backend: ✅ Complete** | **Frontend: ✅ Complete**
 
-The backend infrastructure for **Team Forge (CollabQuest)** has been fully implemented using **Node.js, Express, and MongoDB**.  
-This phase focuses on authentication, user management, matching logic, and team communication readiness.
+**CollabQuest** is now a full-stack application with a complete React frontend and Node.js/Express backend.  
+The platform includes authentication, user management, swipe-style matching, profile management, and a modern UI.
 
 ---
 
@@ -20,6 +20,8 @@ Users are matched based on **skills, interests, and availability**, ensuring bot
 ## 🧱 Core Infrastructure
 
 ### Tech Stack
+
+**Backend:**
 - **Runtime:** Node.js  
 - **Framework:** Express.js  
 - **Database:** MongoDB with Mongoose ODM  
@@ -27,7 +29,14 @@ Users are matched based on **skills, interests, and availability**, ensuring bot
 - **Security:**  
   - Password hashing using `bcryptjs`  
   - Token-based authentication middleware  
-  - CORS enabled for cross-origin requests  
+  - CORS enabled for cross-origin requests
+
+**Frontend:**
+- **Framework:** React 18
+- **Build Tool:** Vite
+- **Routing:** React Router
+- **HTTP Client:** Axios
+- **Styling:** Modern CSS with gradient designs  
 
 ---
 
@@ -119,23 +128,95 @@ Matches are ranked using a **rule-based scoring system**:
 
 ---
 
-## 📈 What’s Next (Planned)
-- Frontend integration (React / HTML-CSS-JS)
-- Team-based real-time chat enhancements
+## 🎨 Frontend Features
+
+- **Authentication Pages** - Beautiful login and signup forms
+- **Swipe-Style Matching** - Tinder-like interface for discovering teammates
+- **Profile Management** - Edit skills, interests, bio, and availability
+- **Matches View** - See all your mutual matches
+- **Chat Interface** - Ready for team-based messaging (UI complete, backend integration pending)
+- **Responsive Design** - Works on desktop and mobile devices
+- **Modern UI** - Gradient designs, smooth animations, and intuitive UX
+
+## 📈 What's Next (Planned)
+- Team-based real-time chat backend integration
 - Notifications for matches & invitations
 - AI-based compatibility improvements
 - Role-based access control
+- Project board functionality
 
 ---
 
 
 
-## 🛠️ Getting Started (Backend)
+## 🛠️ Getting Started
+
+### Prerequisites
+- Node.js (v14 or higher)
+- MongoDB (local or Atlas)
+
+### Backend Setup
 
 ```bash
-git clone https://github.com/your-username/team-forge.git
-cd team-forge
+cd server
+npm install
+
+# Create .env file with:
+# MONGO_URI=your_mongodb_connection_string
+# JWT_SECRET=your_secret_key
+# PORT=5000
+
+npm run dev
+```
+
+Backend will run on `http://localhost:5000`
+
+### Frontend Setup
+
+```bash
+cd client
 npm install
 npm run dev
+```
 
+Frontend will run on `http://localhost:3000`
+
+### Full Stack Development
+
+Run both servers simultaneously:
+
+**Terminal 1 (Backend):**
+```bash
+cd server
+npm run dev
+```
+
+**Terminal 2 (Frontend):**
+```bash
+cd client
+npm run dev
+```
+
+Visit `http://localhost:3000` to use the application!
+
+---
+
+## 📁 Project Structure
+
+```
+TEAM_FORGE/
+├── server/          # Backend (Node.js/Express)
+│   ├── config/      # Database configuration
+│   ├── middleware/  # Auth middleware
+│   ├── models/      # MongoDB models
+│   ├── routes/      # API routes
+│   └── server.js     # Entry point
+└── client/          # Frontend (React)
+    ├── src/
+    │   ├── components/  # React components
+    │   ├── pages/       # Page components
+    │   ├── context/     # React Context
+    │   └── services/    # API services
+    └── package.json
+```
 

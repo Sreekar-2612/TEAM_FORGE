@@ -28,8 +28,7 @@
   justify-content: center;
   align-items: center;
   margin: 40px 0;
-  perspective: 800px;
-  transform-style: preserve-3d;
+  perspective: 1000px;
 }
 
 .swipe-actions {

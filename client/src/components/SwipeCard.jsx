@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react'
-import { motion, useMotionValue, useSpring } from 'framer-motion'
 import './SwipeCard.css'
 
 function SwipeCard({ candidate, index, onLike, onPass }) {
@@ -8,12 +7,6 @@ function SwipeCard({ candidate, index, onLike, onPass }) {
   const [isLeaving, setIsLeaving] = useState(false)
   const startPosRef = useRef({ x: 0, y: 0 })
   const cardRef = useRef(null)
-
-  // Tilt effect using Framer Motion
-  const rotateX = useSpring(useMotionValue(0), { damping: 30, stiffness: 100, mass: 2 })
-  const rotateY = useSpring(useMotionValue(0), { damping: 30, stiffness: 100, mass: 2 })
-  const scale = useSpring(useMotionValue(1), { damping: 30, stiffness: 100, mass: 2 })
-  const rotateAmplitude = 12
 
   const getAvailabilityColor = (availability) => {
     switch (availability) {
@@ -127,61 +120,14 @@ function SwipeCard({ candidate, index, onLike, onPass }) {
     } else {
       // Snap back
       setCurrentPos({ x: 0, y: 0 })
-      // Reset tilt
-      rotateX.set(0)
-      rotateY.set(0)
-      scale.set(1)
     }
     
     setIsDragging(false)
   }
 
-  // Tilt effect handlers
-  const handleMouseMove = (e) => {
-    if (isDragging || !cardRef.current || isLeaving) {
-      return
-    }
-
-    const rect = cardRef.current.getBoundingClientRect()
-    
-    // Check if mouse is within card bounds
-    if (e.clientX < rect.left || e.clientX > rect.right || 
-        e.clientY < rect.top || e.clientY > rect.bottom) {
-      return
-    }
-
-    const offsetX = e.clientX - rect.left - rect.width / 2
-    const offsetY = e.clientY - rect.top - rect.height / 2
-
-    const rotationX = (offsetY / (rect.height / 2)) * -rotateAmplitude
-    const rotationY = (offsetX / (rect.width / 2)) * rotateAmplitude
-
-    rotateX.set(rotationX)
-    rotateY.set(rotationY)
-  }
-
-  const handleMouseEnter = (e) => {
-    if (!isDragging && !isLeaving) {
-      scale.set(1.02)
-      handleMouseMove(e) // Initialize tilt on enter
-    }
-  }
-
-  const handleMouseLeave = () => {
-    if (!isDragging) {
-      rotateX.set(0)
-      rotateY.set(0)
-      scale.set(1)
-    }
-  }
-
   // Mouse events
   const onMouseDown = (e) => {
     e.preventDefault()
-    // Reset tilt when starting drag
-    rotateX.set(0)
-    rotateY.set(0)
-    scale.set(1)
     handleStart(e.clientX, e.clientY)
   }
 
@@ -224,30 +170,22 @@ function SwipeCard({ candidate, index, onLike, onPass }) {
   }, [isDragging])
 
   const rotation = currentPos.x * 0.1
-  const opacity = 1
-  const dragScale = isLeaving ? 0.8 : 1
+  const opacity = isLeaving ? 0 : 1
+  const scale = isLeaving ? 0.8 : 1
 
   // Determine swipe direction for overlay
   const showLikeOverlay = currentPos.x > 50
   const showPassOverlay = currentPos.x < -50
 
   return (
-    <motion.div
+    <div
       ref={cardRef}
       className={`swipe-card active ${isLeaving ? 'leaving' : ''}`}
       style={{
-        x: currentPos.x,
-        y: currentPos.y,
-        rotate: rotation,
-        rotateX: isDragging || isLeaving ? 0 : rotateX,
-        rotateY: isDragging || isLeaving ? 0 : rotateY,
-        scale: isDragging ? dragScale : (isLeaving ? dragScale : scale),
+        transform: `translate(${currentPos.x}px, ${currentPos.y}px) rotate(${rotation}deg) scale(${scale})`,
         opacity,
         zIndex: 10
       }}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       onMouseDown={onMouseDown}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
@@ -305,7 +243,7 @@ function SwipeCard({ candidate, index, onLike, onPass }) {
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   )
 }
 

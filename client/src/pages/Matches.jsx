@@ -1,78 +1,144 @@
-import { useState, useEffect } from 'react'
-import { matchingAPI, userAPI } from '../services/api'
-import Navbar from '../components/Navbar'
-import './Matches.css'
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { chatAPI, matchAPI, matchingAPI } from '../services/api';
+import './Matches.css';
 
-function Matches() {
-  const [matches, setMatches] = useState([])
-  const [loading, setLoading] = useState(true)
+export default function Matches() {
+  const navigate = useNavigate();
+
+  const [incoming, setIncoming] = useState([]);
+  const [pending, setPending] = useState([]);
+  const [matches, setMatches] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const currentUserId = localStorage.getItem('userId'); 
+  // ⚠️ This must already be stored on login/signup
 
   useEffect(() => {
-    loadMatches()
-  }, [])
+    loadAll();
+  }, []);
 
-  const loadMatches = async () => {
+  const loadAll = async () => {
     try {
-      setLoading(true)
-      // For now, we'll show a placeholder since we need to implement match retrieval
-      // In a real app, you'd have an endpoint like GET /api/matches
-      setMatches([])
-    } catch (error) {
-      console.error('Failed to load matches:', error)
+      const [reqRes, pendRes, matchRes] = await Promise.all([
+        matchAPI.getRequests(),
+        matchAPI.getPending(),
+        chatAPI.getMatches(),
+      ]);
+
+      setIncoming(reqRes.data || []);
+      setPending(pendRes.data || []);
+      setMatches(matchRes.data || []);
+    } catch (err) {
+      console.error('Failed to load matches', err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  const acceptRequest = async (userId) => {
+    try {
+      await matchingAPI.swipe(userId, 'like');
+      loadAll();
+    } catch (err) {
+      console.error('Accept failed', err);
+    }
+  };
+
+  const ignoreRequest = async (userId) => {
+    try {
+      await matchingAPI.swipe(userId, 'pass');
+      loadAll();
+    } catch (err) {
+      console.error('Ignore failed', err);
+    }
+  };
 
   if (loading) {
-    return (
-      <>
-        <Navbar />
-        <div className="matches-loading">Loading matches...</div>
-      </>
-    )
+    return <div className="matches-container">Loading...</div>;
   }
 
   return (
-    <>
-      <Navbar />
-      <div className="matches-page">
-        <div className="matches-container">
-          <div className="matches-header">
-            <h1>Your Matches</h1>
-            <p>People who liked you back</p>
-          </div>
+    <div className="matches-container">
+      <h1>Your Connections</h1>
 
-          {matches.length === 0 ? (
-            <div className="no-matches">
-              <div className="no-matches-icon">💔</div>
-              <h2>No matches yet</h2>
-              <p>Keep swiping to find your perfect teammates!</p>
+      {/* INCOMING REQUESTS */}
+      <section>
+        <h2>Incoming Requests</h2>
+        {incoming.length === 0 && <p className="empty">No incoming requests</p>}
+
+        <div className="card-grid">
+          {incoming.map((u) => (
+            <div key={u._id} className="match-card">
+              <div className="avatar">{u.fullName[0]}</div>
+              <h3>{u.fullName}</h3>
+
+              <div className="actions">
+                <button
+                  className="accept"
+                  onClick={() => acceptRequest(u._id)}
+                >
+                  Accept
+                </button>
+                <button
+                  className="reject"
+                  onClick={() => ignoreRequest(u._id)}
+                >
+                  Ignore
+                </button>
+              </div>
             </div>
-          ) : (
-            <div className="matches-grid">
-              {matches.map((match) => (
-                <div key={match._id} className="match-card">
-                  <h3>{match.fullName}</h3>
-                  <p className="match-email">{match.email}</p>
-                  {match.bio && <p className="match-bio">{match.bio}</p>}
-                  {match.skills && match.skills.length > 0 && (
-                    <div className="match-skills">
-                      {match.skills.slice(0, 3).map((skill, idx) => (
-                        <span key={idx} className="skill-badge">{skill}</span>
-                      ))}
-                    </div>
-                  )}
-                  <button className="chat-button">Start Chat</button>
-                </div>
-              ))}
-            </div>
-          )}
+          ))}
         </div>
-      </div>
-    </>
-  )
+      </section>
+
+      {/* PENDING REQUESTS */}
+      <section>
+        <h2>Pending Requests</h2>
+        {pending.length === 0 && <p className="empty">No pending requests</p>}
+
+        <div className="card-grid">
+          {pending.map((u) => (
+            <div key={u._id} className="match-card muted">
+              <div className="avatar">{u.fullName[0]}</div>
+              <h3>{u.fullName}</h3>
+              <p className="status">Waiting for response</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CONFIRMED MATCHES */}
+      <section>
+        <h2>Matches</h2>
+        {matches.length === 0 && <p className="empty">No matches yet</p>}
+
+        <div className="card-grid">
+          {matches.map((c) => {
+            if (!Array.isArray(c.participants)) return null;
+
+            const other = c.participants.find(
+              (p) => p._id !== currentUserId
+            );
+
+            if (!other) return null;
+
+            return (
+              <div
+                key={c.conversationId}
+                className="match-card clickable"
+                onClick={() =>
+                  navigate(`/chat?conversationId=${c.conversationId}`)
+                }
+              >
+                <div className="avatar">{other.fullName[0]}</div>
+                <h3>{other.fullName}</h3>
+                <p className="status">Matched</p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    </div>
+  );
 }
-
-export default Matches
-

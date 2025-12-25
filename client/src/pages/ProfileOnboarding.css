@@ -1,0 +1,98 @@
+.onboarding-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.onboarding-card {
+    background: #ffffff;
+    width: 420px;
+    padding: 32px;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.progress-bar {
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #333;
+    transition: width 0.3s ease;
+}
+
+.step-indicator {
+    font-size: 13px;
+    color: #777;
+    margin-bottom: 16px;
+}
+
+.onboarding-card h2 {
+    margin-bottom: 12px;
+}
+
+.onboarding-card textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 10px;
+    resize: none;
+}
+
+.onboarding-card input,
+.onboarding-card select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 12px;
+}
+
+.char-count {
+    font-size: 12px;
+    color: #999;
+    text-align: right;
+    margin-bottom: 16px;
+}
+
+.tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.tag-list span {
+    background: #333;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 16px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 24px;
+}
+
+.actions button {
+    padding: 10px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+}
+
+.actions .primary {
+    background: #333;
+    color: white;
+}
+
+.actions .secondary {
+    background: transparent;
+    color: #555;
+}

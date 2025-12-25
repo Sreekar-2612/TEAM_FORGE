@@ -1,3 +1,5 @@
+const http = require('http');
+const { Server } = require('socket.io');
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
@@ -15,9 +17,12 @@ const app = express();
 // Middleware
 app.use(express.json()); // Body parser
 app.use(cors()); // Enable CORS
-app.use('/api/auth',authRoutes);
-app.use('/api/user',require('./routes/user'));
+app.use('/api/auth', authRoutes);
+app.use('/api/user', require('./routes/user'));
+app.use('/api/ai', require('./routes/ai'));
 app.use('/api/matches', require('./routes/matching'));
+app.use('/api/chat', require('./routes/chat'));
+
 
 // Basic Route
 app.get('/', (req, res) => {
@@ -29,6 +34,18 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+const server = http.createServer(app);
+
+const io = new Server(server, {
+	cors: {
+		origin: process.env.CLIENT_URL || 'http://localhost:5173',
+		methods: ['GET', 'POST'],
+	},
+});
+
+require('./socket/chatSocket')(io);
+
+server.listen(PORT, () => {
 	console.log(`Server running on port ${PORT}`);
 });
+

@@ -17,13 +17,15 @@ function Dashboard() {
 
   const loadCandidates = async () => {
     try {
+      console.log('Loading candidates...')
       setLoading(true)
       const response = await matchingAPI.getCandidates()
+      console.log('Candidates response:', response.data)
       setCandidates(response.data)
       setCurrentIndex(0)
     } catch (err) {
+      console.error('Failed to load candidates:', err)
       setError('Failed to load candidates')
-      console.error(err)
     } finally {
       setLoading(false)
     }
@@ -33,9 +35,11 @@ function Dashboard() {
     if (currentIndex >= candidates.length) return
 
     const candidate = candidates[currentIndex]
+    console.log('Swiping on candidate:', candidate._id, action)
     
     try {
       const response = await matchingAPI.swipe(candidate._id, action)
+      console.log('Swipe response:', response)
       
       if (response.data.isMatch) {
         setMatchNotification({
@@ -48,10 +52,11 @@ function Dashboard() {
       // Move to next candidate
       if (currentIndex < candidates.length - 1) {
         setCurrentIndex(currentIndex + 1)
+        console.log('Incremented currentIndex to:', currentIndex + 1)
       } else {
-        // No more candidates
-        setCandidates([])
-        setCurrentIndex(0)
+        // No more candidates, load new ones
+        console.log('Loading new candidates')
+        setLoading(true)
         loadCandidates()
       }
     } catch (err) {

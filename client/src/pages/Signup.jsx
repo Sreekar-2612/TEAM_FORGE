@@ -20,7 +20,7 @@ function Signup() {
     const result = await signup(fullName, email, password)
     
     if (result.success) {
-      navigate('/dashboard')
+      navigate('/onboarding')
     } else {
       setError(result.message)
     }

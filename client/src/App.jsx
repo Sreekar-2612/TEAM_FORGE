@@ -5,6 +5,7 @@ import Signup from './pages/Signup'
 import Dashboard from './pages/Dashboard'
 import Profile from './pages/Profile'
 import Matches from './pages/Matches'
+import ProfileOnboarding from './pages/ProfileOnboarding';
 import Chat from './pages/Chat'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Background from './components/Background'
@@ -12,21 +13,29 @@ import './App.css'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
-  
+
   if (loading) {
     return <div className="loading">Loading...</div>
   }
-  
+
   return user ? children : <Navigate to="/login" />
 }
 
 function AppRoutes() {
   const { user } = useAuth()
-  
+
   return (
     <Routes>
       <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
       <Route path="/signup" element={!user ? <Signup /> : <Navigate to="/dashboard" />} />
+      <Route
+        path="/onboarding"
+        element={
+          <ProtectedRoute>
+            <ProfileOnboarding />
+          </ProtectedRoute>
+        }
+      />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />

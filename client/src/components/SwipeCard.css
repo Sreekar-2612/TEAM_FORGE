@@ -171,3 +171,10 @@
 .swipe-card {
   will-change: transform;
 }
+
+.match-info {
+  margin-left: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+

@@ -39,6 +39,26 @@ const UserSchema = new mongoose.Schema({
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'Team',
 	}],
+	aiMatchScores: [
+		{
+			userId: {
+				type: mongoose.Schema.Types.ObjectId,
+				ref: 'User',
+				required: true,
+			},
+			score: {
+				type: Number, // 0–100
+				required: true,
+			},
+			reasoning: {
+				type: String, // optional, future use
+			},
+			updatedAt: {
+				type: Date,
+				default: Date.now,
+			},
+		},
+	],
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', UserSchema);

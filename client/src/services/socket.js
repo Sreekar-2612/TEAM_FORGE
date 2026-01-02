@@ -18,7 +18,7 @@ export const connectSocket = () => {
     });
 
     socket.on('connect', () => {
-        console.log('Socket connected');
+        console.log('Socket connected:', socket.id);
     });
 
     socket.on('disconnect', () => {
@@ -87,3 +87,33 @@ export const onUserOffline = (cb) => {
 export const offEvent = (event, cb) => {
     socket?.off(event, cb);
 };
+
+/* -------------------------------
+   TEAM CHAT (PHASE 2.1.3)
+-------------------------------- */
+
+// Join a team room
+export const joinTeam = (teamId) => {
+    socket?.emit('join_team', { teamId });
+};
+
+// Leave a team room
+export const leaveTeam = (teamId) => {
+    socket?.emit('leave_team', { teamId });
+};
+
+// Send a team message
+export const sendTeamMessage = (teamId, content) => {
+    if (!content?.trim()) return;
+
+    socket?.emit('send_team_message', {
+        teamId,
+        content,
+    });
+};
+
+// Listen for team messages
+export const onTeamMessage = (cb) => {
+    socket?.on('team_message', cb);
+};
+

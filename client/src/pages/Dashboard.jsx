@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
-import { matchingAPI } from '../services/api'
-import Navbar from '../components/Navbar'
-import SwipeCard from '../components/SwipeCard'
-import './Dashboard.css'
+import { useState, useEffect } from 'react';
+import { matchingAPI, teamAPI } from '../services/api';
+import { useNavigate } from 'react-router-dom';
+import Navbar from '../components/Navbar';
+import SwipeCard from '../components/SwipeCard';
+import './Dashboard.css';
 
 function Dashboard() {
   const [candidates, setCandidates] = useState([])
@@ -10,10 +11,19 @@ function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [matchNotification, setMatchNotification] = useState(null)
+  const [teams, setTeams] = useState([]);
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     loadCandidates()
   }, [])
+
+  useEffect(() => {
+    teamAPI.getMyTeams().then(res => {
+      setTeams(res.data || []);
+    });
+  }, []);
 
   const loadCandidates = async () => {
     try {

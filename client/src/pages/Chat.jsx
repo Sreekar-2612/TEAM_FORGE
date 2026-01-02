@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import Navbar from '../components/Navbar';
 import { useSearchParams } from 'react-router-dom';
 import { getAvatarSrc } from '../services/avatar';
 import { useAuth } from '../context/AuthContext';
@@ -205,110 +206,118 @@ export default function Chat() {
     const other = getOtherUser(convo);
     sendTyping(activeId, other._id);
   };
-
-  if (loading) return <div className="chat-loading">Loading chats…</div>;
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div className="chat-loading">Loading chats…</div>
+      </>
+    );
+  }
 
   return (
-    <div className="chat-container">
-      {/* SIDEBAR */}
-      <div className="chat-sidebar">
-        <h2>Messages</h2>
+    <>
+      <Navbar />
 
-        {conversations.map((c) => {
-          const other = getOtherUser(c);
-          return (
-            <div
-              key={c.conversationId}
-              className={`conversation ${
-                activeId === c.conversationId ? 'active' : ''
-              }`}
-              onClick={() => openConversation(c.conversationId)}
-            >
-              <img
-                className="chat-avatar"
-                src={getAvatarSrc(other.profileImage)}
-                alt={other.fullName}
-              />
+      <div className="chat-container">
+        {/* SIDEBAR */}
+        <div className="chat-sidebar">
+          <h2>Messages</h2>
 
-              <div className="conversation-info">
-                <div className="name">
-                  {other.fullName}
-                  {onlineUsers.has(other._id) && (
-                    <span className="online-dot" />
-                  )}
-                </div>
+          {conversations.map((c) => {
+            const other = getOtherUser(c);
+            return (
+              <div
+                key={c.conversationId}
+                className={`conversation ${activeId === c.conversationId ? 'active' : ''
+                  }`}
+                onClick={() => openConversation(c.conversationId)}
+              >
+                <img
+                  className="chat-avatar"
+                  src={getAvatarSrc(other.profileImage)}
+                  alt={other.fullName}
+                />
 
-                <div className="preview">{c.lastMessage}</div>
-              </div>
-
-              {c.unreadCount > 0 && (
-                <span className="badge">{c.unreadCount}</span>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* CHAT */}
-      <div className="chat-main">
-        {!activeId && (
-          <div className="empty-chat">
-            Select a conversation to start chatting
-          </div>
-        )}
-
-        {activeId && (() => {
-          const convo = conversations.find(
-            (c) => c.conversationId === activeId
-          );
-
-          return (
-            <>
-              {convo?.matchExplanation && (
-                <div className="match-explanation">
-                  {convo.matchExplanation}
-                </div>
-              )}
-
-              <div className="chat-messages">
-                {(messages[activeId] || []).map((m) => (
-                  <div
-                    key={m._id}
-                    className={`message ${
-                      m.system
-                        ? 'system'
-                        : m.senderId?._id === myUserId
-                        ? 'sent'
-                        : 'received'
-                    }`}
-                  >
-                    {m.content}
+                <div className="conversation-info">
+                  <div className="name">
+                    {other.fullName}
+                    {onlineUsers.has(other._id) && (
+                      <span className="online-dot" />
+                    )}
                   </div>
-                ))}
 
-                {typingMap[activeId] && (
-                  <div className="typing">typing…</div>
+                  <div className="preview">{c.lastMessage}</div>
+                </div>
+
+                {c.unreadCount > 0 && (
+                  <span className="badge">{c.unreadCount}</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* CHAT */}
+        <div className="chat-main">
+          {!activeId && (
+            <div className="empty-chat">
+              Select a conversation to start chatting
+            </div>
+          )}
+
+          {activeId && (() => {
+            const convo = conversations.find(
+              (c) => c.conversationId === activeId
+            );
+
+            return (
+              <>
+                {convo?.matchExplanation && (
+                  <div className="match-explanation">
+                    {convo.matchExplanation}
+                  </div>
                 )}
 
-                <div ref={messagesEndRef} />
-              </div>
+                <div className="chat-messages">
+                  {(messages[activeId] || []).map((m) => (
+                    <div
+                      key={m._id}
+                      className={`message ${m.system
+                          ? 'system'
+                          : m.senderId?._id === myUserId
+                            ? 'sent'
+                            : 'received'
+                        }`}
+                    >
+                      {m.content}
+                    </div>
+                  ))}
 
-              <div className="chat-input">
-                <input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleTypingInput}
-                  onKeyPress={(e) =>
-                    e.key === 'Enter' && handleSend()
-                  }
-                  placeholder="Type a message…"
-                />
-                <button onClick={handleSend}>Send</button>
-              </div>
-            </>
-          );
-        })()}
+                  {typingMap[activeId] && (
+                    <div className="typing">typing…</div>
+                  )}
+
+                  <div ref={messagesEndRef} />
+                </div>
+
+                <div className="chat-input">
+                  <input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleTypingInput}
+                    onKeyPress={(e) =>
+                      e.key === 'Enter' && handleSend()
+                    }
+                    placeholder="Type a message…"
+                  />
+                  <button onClick={handleSend}>Send</button>
+                </div>
+              </>
+            );
+          })()}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

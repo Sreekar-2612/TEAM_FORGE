@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useEffect, useState } from 'react'
 import { chatAPI } from '../services/api';
@@ -81,6 +81,15 @@ function Navbar() {
               <span className="nav-badge">{unreadChats}</span>
             )}
           </Link>
+
+          <NavLink
+            to="/teams"
+            className={({ isActive }) =>
+              `nav-link ${isActive ? 'nav-active' : ''}`
+            }
+          >
+            Teams
+          </NavLink>
 
           <Link to="/profile" className="nav-link">Profile</Link>
 

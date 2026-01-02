@@ -117,7 +117,7 @@
 }
 
 .tag-input button:hover {
-  background: #764ba2;
+  background: blueviolet;
   transform: translateY(-2px);
 }
 
@@ -128,7 +128,7 @@
 }
 
 .tag {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: blueviolet;
   color: white;
   padding: 8px 16px;
   border-radius: 20px;
@@ -160,7 +160,7 @@
 .save-button {
   width: 100%;
   padding: 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: blueviolet;
   color: white;
   border: none;
   border-radius: 10px;

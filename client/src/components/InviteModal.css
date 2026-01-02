@@ -1,0 +1,143 @@
+/* =========================
+   MODAL BACKDROP
+========================= */
+.invite-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+/* =========================
+   MODAL CONTAINER
+========================= */
+.invite-modal {
+    width: 420px;
+    max-height: 80vh;
+    background: #0f0f17;
+    border-radius: 12px;
+    border: 1px solid #2a2a2a;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* =========================
+   HEADER
+========================= */
+.invite-modal-header {
+    padding: 16px;
+    border-bottom: 1px solid #2a2a2a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.invite-modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #e0e0e0;
+}
+
+.invite-close {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.invite-close:hover {
+    color: #fff;
+}
+
+/* =========================
+   BODY
+========================= */
+.invite-modal-body {
+    padding: 12px;
+    overflow-y: auto;
+}
+
+/* =========================
+   USER ROW
+========================= */
+.invite-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: default;
+}
+
+.invite-user:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.invite-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: #222;
+}
+
+.invite-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.invite-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #e0e0e0;
+}
+
+.invite-skills {
+    font-size: 12px;
+    color: #9e9e9e;
+}
+
+/* =========================
+   INVITE BUTTON
+========================= */
+.invite-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+    color: #fff;
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.invite-btn:disabled {
+    background: #333;
+    cursor: not-allowed;
+}
+
+/* =========================
+   EMPTY STATE
+========================= */
+.invite-empty {
+    text-align: center;
+    color: #aaa;
+    padding: 20px;
+    font-size: 14px;
+}
+
+.invite-error {
+    color: #d32f2f;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}

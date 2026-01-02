@@ -1,119 +1,57 @@
-/* CONTAINER & LAYOUT */
-.onboarding-container {
-    min-height: 100vh;
+/* PAGE */
+.onboarding-page {
+    min-height: calc(100vh - 70px);
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
+    padding: 30px 20px;
 }
 
+/* CARD — matches Profile page */
 .onboarding-card {
-    background: #ffffff;
-    width: 420px;
-    padding: 32px;
-    border-radius: 8px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    width: min(800px, 95vw);
+    background: rgba(26, 26, 46, 0.92);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 36px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+    border: 1px solid #333;
+    color: #e5e7eb;
 }
 
 .onboarding-card h2 {
-    margin-bottom: 12px;
+    text-align: center;
+    margin-bottom: 24px;
+    font-size: 28px;
 }
 
-/* PROGRESS & INDICATORS */
-.progress-bar {
-    height: 8px;
-    background: #e0e0e0;
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 16px;
-}
-
-.progress-fill {
-    height: 100%;
-    background: #333;
-    transition: width 0.3s ease;
-}
-
-.step-indicator {
-    font-size: 13px;
-    color: #777;
-    margin-bottom: 16px;
-}
-
-/* FORM ELEMENTS */
-.onboarding-card input,
-.onboarding-card select,
-.onboarding-card textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-.onboarding-card input,
-.onboarding-card select {
-    margin-bottom: 12px;
-}
-
-.onboarding-card textarea {
-    min-height: 120px;
-    resize: none;
-}
-
-.char-count {
-    font-size: 12px;
-    color: #999;
-    text-align: right;
-    margin-bottom: 16px;
-}
-
-/* TAGS */
-.tag-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 16px;
-}
-
-.tag-list span {
-    background: #333;
-    color: white;
-    padding: 6px 10px;
-    border-radius: 16px;
-    font-size: 12px;
-    cursor: pointer;
-}
-
-/* AVATAR SECTION (Match Profile Exactly) */
+/* AVATAR */
 .avatar-section {
-    position: relative;
-    width: 180px;
-    height: 180px;
-    margin: 0 auto 24px;
+    width: 170px;
+    height: 170px;
+    margin: 0 auto 18px;
     border-radius: 50%;
     overflow: hidden;
+    position: relative;
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .avatar {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* 🔑 Ensures image isn't squashed */
+    object-fit: cover;
     border-radius: 50%;
-    display: block;
-    border: 3px solid rgba(0, 0, 0, 0.1);
 }
 
 .avatar-overlay {
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.55);
-    color: #fff;
-    font-size: 14px;
-    font-weight: 500;
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    text-align: center;
-    border-radius: 50%;
+    font-size: 14px;
     opacity: 0;
     cursor: pointer;
     transition: opacity 0.2s ease;
@@ -123,33 +61,114 @@
     opacity: 1;
 }
 
-/* BUTTONS */
-.actions {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 24px;
-}
-
-.actions button {
-    padding: 10px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    border: none;
-}
-
-.actions .primary {
-    background: #333;
-    color: white;
-}
-
-.actions .secondary {
-    background: transparent;
-    color: #555;
-}
-
 .photo-hint {
     text-align: center;
     font-size: 12px;
-    color: #777;
-    margin-top: 8px;
+    color: #aaa;
+    margin-bottom: 16px;
 }
+
+/* INPUTS */
+textarea,
+select,
+.tag-input input {
+    width: 100%;
+    padding: 12px;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    border: 2px solid #333;
+    border-radius: 10px;
+    font-size: 15px;
+}
+
+textarea {
+    min-height: 110px;
+    margin-bottom: 20px;
+    resize: none;
+}
+
+/* TAG INPUT */
+.tag-input {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.tag-input button {
+    padding: 8px 16px;
+    font-size: 14px;
+    background: #8b5cf6;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+/* TAGS */
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 22px;
+}
+
+.tag {
+    background: #7c3aed;
+    padding: 6px 12px;
+    border-radius: 18px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.tag button {
+    background: rgba(255, 255, 255, 0.25);
+    border: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+}
+
+/* FINISH */
+.finish-btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 17px;
+    background: #8b5cf6;
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.finish-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ERROR */
+.error {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+#availability-box {
+    margin-bottom: 20px;
+    cursor: pointer;
+}
+
+.onboard-hint {
+    text-align: center;
+    font-size: 12px;
+    color: #aaa;
+    margin-bottom: 16px;
+}
+

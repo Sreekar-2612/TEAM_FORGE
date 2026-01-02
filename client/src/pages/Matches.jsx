@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Navbar from '../components/Navbar';
+import { useAuth } from '../context/AuthContext';
 import { chatAPI, matchAPI, matchingAPI } from '../services/api';
 import { getAvatarSrc } from '../services/avatar';
 import './Matches.css';
@@ -10,9 +12,9 @@ export default function Matches() {
   const [incoming, setIncoming] = useState([]);
   const [pending, setPending] = useState([]);
   const [matches, setMatches] = useState([]);
+  const { user } = useAuth();
+  const myId = String(user?._id);
   const [loading, setLoading] = useState(true);
-
-  const currentUserId = localStorage.getItem('userId');
 
   useEffect(() => {
     loadAll();
@@ -59,89 +61,101 @@ export default function Matches() {
   }
 
   return (
-    <div className="matches-container">
-      <h1>Your Connections</h1>
+    <>
+      <Navbar />
 
-      {/* INCOMING */}
-      <section>
-        <h2>Incoming Requests</h2>
-        {incoming.length === 0 && <p className="empty">No incoming requests</p>}
+      <div className="matches-container">
 
-        <div className="card-grid">
-          {incoming.map((u) => (
-            <div key={u._id} className="match-card">
-              <img
-                className="avatar-img"
-                src={getAvatarSrc(u.profileImage)}
-                alt={u.fullName}
-              />
-              <h3>{u.fullName}</h3>
+        {/* INCOMING */}
+        <section>
+          <h2>Incoming Requests</h2>
+          {incoming.length === 0 && <p className="empty">No incoming requests</p>}
 
-              <div className="actions">
-                <button className="accept" onClick={() => acceptRequest(u._id)}>
-                  Accept
-                </button>
-                <button className="reject" onClick={() => ignoreRequest(u._id)}>
-                  Ignore
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* PENDING */}
-      <section>
-        <h2>Pending Requests</h2>
-        {pending.length === 0 && <p className="empty">No pending requests</p>}
-
-        <div className="card-grid">
-          {pending.map((u) => (
-            <div key={u._id} className="match-card muted">
-              <img
-                className="avatar-img"
-                src={getAvatarSrc(u.profileImage)}
-                alt={u.fullName}
-              />
-              <h3>{u.fullName}</h3>
-              <p className="status">Waiting for response</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* MATCHES */}
-      <section>
-        <h2>Matches</h2>
-        {matches.length === 0 && <p className="empty">No matches yet</p>}
-
-        <div className="card-grid">
-          {matches.map((c) => {
-            const other = c.participants?.find(
-              (p) => p._id !== currentUserId
-            );
-            if (!other) return null;
-
-            return (
-              <div
-                key={c.conversationId}
-                className="match-card clickable"
-                onClick={() =>
-                  navigate(`/chat?conversationId=${c.conversationId}`)
-                }
-              >
+          <div className="card-grid">
+            {incoming.map((u) => (
+              <div key={u._id} className="match-card">
                 <img
                   className="avatar-img"
-                  src={getAvatarSrc(other.profileImage)}
-                  alt={other.fullName}
+                  src={getAvatarSrc(u.profileImage)}
+                  alt={u.fullName}
                 />
-                <h3>{other.fullName}</h3>
-                <p className="status">Matched</p>
+                <h3>{u.fullName}</h3>
+
+                <div className="actions">
+                  <button
+                    className="accept"
+                    onClick={() => acceptRequest(u._id)}
+                  >
+                    Accept
+                  </button>
+                  <button
+                    className="reject"
+                    onClick={() => ignoreRequest(u._id)}
+                  >
+                    Ignore
+                  </button>
+                </div>
               </div>
-            );
-          })}
-        </div>
-      </section>
-    </div>
+            ))}
+          </div>
+        </section>
+
+        {/* PENDING */}
+        <section>
+          <h2>Pending Requests</h2>
+          {pending.length === 0 && <p className="empty">No pending requests</p>}
+
+          <div className="card-grid">
+            {pending.map((u) => (
+              <div key={u._id} className="match-card muted">
+                <img
+                  className="avatar-img"
+                  src={getAvatarSrc(u.profileImage)}
+                  alt={u.fullName}
+                />
+                <h3>{u.fullName}</h3>
+                <p className="status">Waiting for response</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* MATCHES */}
+        <section>
+          <h2>Matches</h2>
+          {matches.length === 0 && <p className="empty">No matches yet</p>}
+
+          <div className="card-grid">
+            {matches.map((c) => {
+              if (!c.participants || c.participants.length < 2) return null;
+
+              const other = c.participants.find(
+                (p) => String(p._id) !== myId
+              );
+
+              if (!other) return null;
+
+              return (
+                <div
+                  key={c.conversationId}
+                  className="match-card clickable"
+                  onClick={() =>
+                    navigate(`/chat?conversationId=${c.conversationId}`)
+                  }
+                >
+                  <img
+                    className="avatar-img"
+                    src={getAvatarSrc(other.profileImage)}
+                    alt={other.fullName}
+                  />
+                  <h3>{other.fullName}</h3>
+                  <p className="status">Matched</p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </div>
+    </>
   );
 }

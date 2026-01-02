@@ -1,0 +1,181 @@
+.team-members-panel {
+    width: 270px;
+    background: rgba(26, 26, 46, 0.9);
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 16px;
+
+    box-shadow:
+        inset 1px 0 rgba(255, 255, 255, 0.04),
+        -8px 0 30px rgba(0, 0, 0, 0.45);
+
+    color: #e5e7eb;
+}
+
+/* ===============================
+   HEADER
+================================ */
+.team-members-panel h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 14px;
+}
+
+.team-members-panel h4 {
+    margin-top: 18px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #c7d2fe;
+}
+
+/* ===============================
+   MEMBER ROW
+================================ */
+.member-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 6px;
+    border-radius: 10px;
+    transition: background 0.15s ease;
+}
+
+.member-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.member-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #020617;
+    border: 2px solid rgba(139, 92, 246, 0.45);
+    flex-shrink: 0;
+}
+
+/* ===============================
+   MEMBER INFO
+================================ */
+.member-info {
+    flex: 1;
+    min-width: 0;
+    /* 🔑 prevents overflow */
+}
+
+/* NAME */
+.member-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #f8fafc;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* BADGE ROW — FIXES CLASH */
+.member-name-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* BADGES GROUP */
+.member-badges {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* YOU BADGE */
+.you-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(144, 202, 249, 0.18);
+    color: #90caf9;
+    font-weight: 600;
+}
+
+/* ADMIN BADGE */
+.admin-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    color: white;
+    font-weight: 600;
+}
+
+/* ===============================
+   STATUS DOT
+================================ */
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.status-dot.online {
+    background: #22c55e;
+}
+
+.status-dot.offline {
+    background: #64748b;
+}
+
+/* ===============================
+   INVITE POLICY NOTE
+================================ */
+.invite-policy-note {
+    font-size: 12px;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    background: rgba(139, 92, 246, 0.12);
+    color: #c7d2fe;
+    border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+/* ===============================
+   PENDING INVITES
+================================ */
+.invite-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 8px 6px;
+    border-radius: 10px;
+    margin-bottom: 6px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.invite-row span {
+    font-size: 13px;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ACTION BUTTONS */
+.invite-row button {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.invite-row button:first-of-type {
+    background: #22c55e;
+    color: #022c22;
+}
+
+.invite-row button:last-of-type {
+    background: rgba(255, 255, 255, 0.12);
+    color: #e5e7eb;
+}

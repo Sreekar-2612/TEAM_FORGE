@@ -21,15 +21,11 @@ export default function ProfileOnboarding() {
 
     const [newSkill, setNewSkill] = useState('');
     const [newInterest, setNewInterest] = useState('');
-
     const [pendingPhoto, setPendingPhoto] = useState(null);
     const [photoPreview, setPhotoPreview] = useState(null);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
 
-    /* =========================
-       PHOTO (PREVIEW ONLY)
-    ========================= */
     const handlePhotoSelect = (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -44,10 +40,6 @@ export default function ProfileOnboarding() {
         setPhotoPreview(URL.createObjectURL(file));
     };
 
-
-    /* =========================
-       SUBMIT ONBOARDING
-    ========================= */
     const handleSubmit = async () => {
         try {
             setSaving(true);
@@ -55,38 +47,32 @@ export default function ProfileOnboarding() {
 
             let profileImage = '';
 
-            // 1️⃣ Upload image ONLY if user selected one
             if (pendingPhoto) {
                 const uploadRes = await profileAPI.uploadPhoto(pendingPhoto);
                 profileImage = uploadRes.data.profileImage;
             }
 
-            // 2️⃣ Save profile in ONE call
-            const res = await userAPI.updateProfile({
+            await userAPI.updateProfile({
                 ...formData,
                 profileImage,
             });
 
-            updateUser(res.data);
-            navigate('/dashboard');
+            await updateUser();
+            navigate('/dashboard', { replace: true });
         } catch (err) {
-            console.error(err);
             setError('Failed to complete onboarding');
         } finally {
             setSaving(false);
         }
     };
 
-    /* =========================
-       TAG HELPERS
-    ========================= */
     const addSkill = () => {
         if (!newSkill.trim()) return;
         if (formData.skills.includes(newSkill)) return;
 
         setFormData({
             ...formData,
-            skills: [...formData.skills, newSkill],
+            skills: [...formData.skills, newSkill.trim()],
         });
         setNewSkill('');
     };
@@ -97,7 +83,7 @@ export default function ProfileOnboarding() {
 
         setFormData({
             ...formData,
-            interests: [...formData.interests, newInterest],
+            interests: [...formData.interests, newInterest.trim()],
         });
         setNewInterest('');
     };
@@ -117,9 +103,8 @@ export default function ProfileOnboarding() {
                             src={photoPreview || getAvatarSrc(null)}
                             alt="Profile preview"
                         />
-
                         <label className="avatar-overlay">
-                            Upload photo
+                            Change photo
                             <input
                                 type="file"
                                 accept="image/*"
@@ -129,9 +114,9 @@ export default function ProfileOnboarding() {
                         </label>
                     </div>
 
-                    <div className="photo-hint">
-                        Image size: 0–2 MB (JPG / PNG)
-                    </div>
+                    <p className="photo-hint">Image size: 0–2 MB (JPG / PNG)</p>
+                    <p className="onboard-hint">!Make sure to fill all the fields to complete onboarding!</p>
+                    
 
                     {error && <div className="error">{error}</div>}
 
@@ -156,7 +141,19 @@ export default function ProfileOnboarding() {
 
                     <div className="tags">
                         {formData.skills.map((s) => (
-                            <span key={s}>{s}</span>
+                            <span key={s} className="tag">
+                                {s}
+                                <button
+                                    onClick={() =>
+                                        setFormData({
+                                            ...formData,
+                                            skills: formData.skills.filter(x => x !== s),
+                                        })
+                                    }
+                                >
+                                    ×
+                                </button>
+                            </span>
                         ))}
                     </div>
 
@@ -173,11 +170,23 @@ export default function ProfileOnboarding() {
 
                     <div className="tags">
                         {formData.interests.map((i) => (
-                            <span key={i}>{i}</span>
+                            <span key={i} className="tag">
+                                {i}
+                                <button
+                                    onClick={() =>
+                                        setFormData({
+                                            ...formData,
+                                            interests: formData.interests.filter(x => x !== i),
+                                        })
+                                    }
+                                >
+                                    ×
+                                </button>
+                            </span>
                         ))}
                     </div>
 
-                    <select
+                    <select id='availability-box'
                         value={formData.availability}
                         onChange={(e) =>
                             setFormData({
@@ -191,7 +200,7 @@ export default function ProfileOnboarding() {
                         <option value="Low">Low</option>
                     </select>
 
-                    <button onClick={handleSubmit} disabled={saving}>
+                    <button className="finish-btn" onClick={handleSubmit} disabled={saving}>
                         {saving ? 'Saving…' : 'Finish'}
                     </button>
                 </div>

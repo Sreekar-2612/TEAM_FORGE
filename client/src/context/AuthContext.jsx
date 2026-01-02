@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { connectSocket, disconnectSocket } from '../services/socket';
 import { authAPI, userAPI } from '../services/api'
 
 const AuthContext = createContext()
@@ -18,11 +19,13 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     if (token) {
-      loadUser()
+      connectSocket();
+      loadUser();
     } else {
-      setLoading(false)
+      disconnectSocket();
+      setLoading(false);
     }
-  }, [token])
+  }, [token]);
 
   const loadUser = async () => {
     try {
@@ -42,7 +45,7 @@ export function AuthProvider({ children }) {
       const { token: newToken, user: userData } = response.data
       localStorage.setItem('token', newToken)
       setToken(newToken)
-      setUser(userData)
+      await loadUser();
       return { success: true }
     } catch (error) {
       return {
@@ -58,7 +61,7 @@ export function AuthProvider({ children }) {
       const { token: newToken, user: userData } = response.data
       localStorage.setItem('token', newToken)
       setToken(newToken)
-      setUser(userData)
+      await loadUser();
       return { success: true }
     } catch (error) {
       return {
@@ -69,14 +72,20 @@ export function AuthProvider({ children }) {
   }
 
   const logout = () => {
-    localStorage.removeItem('token')
-    setToken(null)
-    setUser(null)
-  }
-
-  const updateUser = (userData) => {
-    setUser(userData)
-  }
+    disconnectSocket();
+    localStorage.removeItem('token');
+    setToken(null);
+    setUser(null);
+  };
+  
+  const updateUser = async () => {
+    try {
+      const res = await userAPI.getProfile();
+      setUser(res.data);
+    } catch (e) {
+      logout();
+    }
+  };
 
   const value = {
     user,

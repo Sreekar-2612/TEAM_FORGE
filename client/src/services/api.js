@@ -1,14 +1,12 @@
 import axios from 'axios';
 
-const API_URL =
-  import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-/* =========================
-   AXIOS INSTANCE
-========================= */
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: API_BASE_URL,
+  withCredentials: true,
 });
+
 
 /* =========================
    AUTH INTERCEPTOR
@@ -34,7 +32,7 @@ export const authAPI = {
 ========================= */
 export const userAPI = {
   getProfile: () => api.get('/api/user/me'),
-  updateProfile: (data) => api.put('/api/user/me', data),
+  updateProfile: (data) => api.put('/api/profile/me', data),
   getUser: (id) => api.get(`/api/user/${id}`),
 };
 
@@ -78,6 +76,71 @@ export const profileAPI = {
     });
   },
 };
+
+
+
+export const teamAPI = {
+  createTeam: (data) => api.post('/api/teams', data),
+  getMyTeams: () => api.get('/api/teams/mine'),
+  leaveTeam: (teamId) => api.post(`/api/teams/${teamId}/leave`),
+  joinTeam: (token) => api.post(`/api/teams/join/${token}`),
+  getTeamMessages: (teamId) =>
+    api.get(`/api/teams/${teamId}/messages`),
+  updateCapacity: (teamId, maxMembers) =>
+    api.put(`/api/teams/${teamId}/capacity`, { maxMembers }),
+  joinByInvite: (token) => api.post(`/api/teams/join/${token}`),
+  getTeam: (teamId) => api.get('/api/teams/mine').then(res =>
+    res.data.find(t => t._id === teamId)
+  ),
+  /* 🔽 NEW */
+  inviteUser: (teamId, userId) =>
+    api.post(`/api/teams/${teamId}/invite`, { userId }),
+
+  getPendingInvites: (teamId) =>
+    api.get(`/api/teams/${teamId}/invites`),
+
+  approveInvite: (teamId, userId) =>
+    api.post(`/api/teams/${teamId}/invites/${userId}/approve`),
+
+  rejectInvite: (teamId, userId) =>
+    api.post(`/api/teams/${teamId}/invites/${userId}/reject`),
+  // 🔑 INVITES
+  getMatchedUsers: (teamId) =>
+    api.get(`/api/teams/${teamId}/matched-users`),
+};
+
+
+
+/* =========================
+   TEAM PROJECT API
+========================= */
+export const teamProjectAPI = {
+  getProject: (teamId) =>
+    api.get(`/api/team-projects/${teamId}`),
+
+  addTask: (teamId, data) =>
+    api.post(`/api/team-projects/${teamId}/tasks`, data),
+
+  updateStatus: (teamId, taskId, data) =>
+    api.patch(`/api/team-projects/${teamId}/tasks/${taskId}/status`, data),
+
+  updateProgress: (teamId, taskId, progress) =>
+    api.patch(`/api/team-projects/${teamId}/tasks/${taskId}/progress`, {
+      progress,
+    }),
+
+  updateColor: (teamId, taskId, color) =>
+    api.patch(`/api/team-projects/${teamId}/tasks/${taskId}/color`, {
+      color,
+    }),
+
+  deleteTask: (teamId, taskId) =>
+    api.delete(`api/team-projects/${teamId}/tasks/${taskId}`),
+};
+
+
+
+
 
 /* =========================
    AI API (OPENROUTER)

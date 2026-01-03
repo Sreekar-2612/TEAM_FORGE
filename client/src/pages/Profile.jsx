@@ -85,7 +85,7 @@ function Profile() {
       setSaving(true);
       setMessage('');
 
-      await userAPI.updateProfile(formData);
+      await profileAPI.updateProfile(formData);
 
       await updateUser();
 

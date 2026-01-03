@@ -82,7 +82,7 @@ export default function ProfileOnboarding() {
                 profileImage = uploadRes.data.profileImage;
             }
 
-            await userAPI.updateProfile({
+            await profileAPI.updateProfile({
                 ...formData,
                 profileImage,
             });

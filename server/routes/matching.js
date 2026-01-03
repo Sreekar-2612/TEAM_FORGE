@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const auth = require('../middleware/auth');
 const User = require('../models/User');
 const Interaction = require('../models/Interaction');
@@ -120,7 +121,7 @@ router.get('/incoming', auth, async (req, res) => {
     try {
         const incoming = await Interaction.find({
             receiverId: req.user,
-            senderId: { $ne: req.user },
+            senderId: { $ne: me },
             type: 'like',
         }).populate('senderId', 'fullName profileImage');
 
@@ -139,7 +140,7 @@ router.get('/pending', auth, async (req, res) => {
     try {
         const pending = await Interaction.find({
             senderId: req.user,
-            receiverId: { $ne: req.user },
+            receiverId: { $ne:me },
             type: 'like',
         }).populate('receiverId', 'fullName profileImage');
 
@@ -156,6 +157,10 @@ router.get('/pending', auth, async (req, res) => {
 ========================= */
 router.post('/swipe', auth, requireCompleteProfile, async (req, res) => {
     const { targetId, type } = req.body;
+
+    const me = new mongoose.Types.ObjectId(req.user);
+    const them = new mongoose.Types.ObjectId(targetId);
+
 
     try {
         const incoming = await Interaction.findOne({
@@ -176,22 +181,22 @@ router.post('/swipe', auth, requireCompleteProfile, async (req, res) => {
 
         if (type === 'like' && incoming) {
 
-            // ✅ CLEAN UP ALL OLD INTERACTIONS BETWEEN THE TWO USERS
+            // ✅ DELETE INTERACTIONS — NOW ACTUALLY MATCHES
             await Interaction.deleteMany({
                 $or: [
-                    { senderId: req.user, receiverId: targetId },
-                    { senderId: targetId, receiverId: req.user },
+                    { senderId: me, receiverId: them },
+                    { senderId: them, receiverId: me },
                 ],
             });
 
-            const conversationId = [req.user, targetId].sort().join('_');
+            const conversationId = [me.toString(), them.toString()].sort().join('_');
 
             await Conversation.updateOne(
                 { conversationId },
                 {
                     $setOnInsert: {
                         conversationId,
-                        participants: [req.user, targetId],
+                        participants: [me, them],
                         lastMessage: 'You are now matched 🎉',
                         lastMessageAt: new Date(),
                     },
@@ -201,15 +206,14 @@ router.post('/swipe', auth, requireCompleteProfile, async (req, res) => {
 
             await Message.create({
                 conversationId,
-                senderId: req.user,
-                receiverId: targetId,
+                senderId: me,
+                receiverId: them,
                 content: 'You are now matched 🎉',
                 read: false,
             });
 
             return res.json({ success: true, isMatch: true });
         }
-
 
         if (outgoing) {
             return res.status(400).json({ msg: 'Already swiped on this user' });

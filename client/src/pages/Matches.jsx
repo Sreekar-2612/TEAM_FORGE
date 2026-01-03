@@ -7,9 +7,6 @@ import { getAvatarSrc } from '../services/avatar';
 import './Matches.css';
 
 export default function Matches() {
-  console.log('incoming', reqRes.data);
-  console.log('pending', pendRes.data);
-  console.log('matches', matchRes.data);
 
   const navigate = useNavigate();
 
@@ -34,6 +31,10 @@ export default function Matches() {
         chatAPI.getMatches(),
       ]);
 
+      console.log('INCOMING →', reqRes.data);
+      console.log('PENDING →', pendRes.data);
+      console.log('MATCHES →', matchRes.data);
+
       setIncoming(reqRes.data || []);
       setPending(pendRes.data || []);
       setMatches(matchRes.data || []);
@@ -43,6 +44,7 @@ export default function Matches() {
       setLoading(false);
     }
   };
+
 
   const acceptRequest = async (userId) => {
     try {

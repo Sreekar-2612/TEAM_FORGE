@@ -32,7 +32,10 @@ router.post('/upload-photo', auth, upload.single('photo'), async (req, res) => {
             { folder: 'teamforge/profiles' }
         );
 
-        res.json({ profileImage: result.secure_url });
+        res.json({
+            profileImage: result.secure_url,
+            publicId: result.public_id,
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Photo upload failed' });

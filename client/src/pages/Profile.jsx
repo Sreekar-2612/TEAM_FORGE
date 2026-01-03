@@ -40,8 +40,10 @@ function Profile() {
         bio: response.data.bio || '',
         skills: response.data.skills || [],
         interests: response.data.interests || [],
-        availability: response.data.availability || 'Medium'
-      })
+        availability: response.data.availability || 'Medium',
+        profileImage: response.data.profileImage || '',
+      });
+
     } catch (error) {
       console.error('Failed to load profile:', error)
     } finally {
@@ -86,7 +88,7 @@ function Profile() {
       const res = await userAPI.updateProfile(formData);
 
       setUser(res.data);
-      updateUser(res.data);
+      await updateUser();
 
       setPhotoPreview(null);
       setMessage('Profile updated successfully!');
@@ -152,7 +154,12 @@ function Profile() {
             <div className="avatar-section">
               <img
                 className="profile-avatar"
-                src={getAvatarSrc(photoPreview || formData.profileImage || user.profileImage)}
+                src={getAvatarSrc(
+                  photoPreview ??
+                  formData.profileImage ??
+                  user?.profileImage ??
+                  null
+                )}
                 alt="Profile"
               />
 

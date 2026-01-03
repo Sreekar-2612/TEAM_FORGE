@@ -3,6 +3,8 @@ import { getAvatarSrc } from '../services/avatar';
 import './SwipeCard.css';
 
 
+const [leaving, setLeaving] = useState(null);
+
 const resolveImage = (img) => {
   if (!img) return getAvatarSrc(null);
   if (img.startsWith('http')) return img;
@@ -30,13 +32,20 @@ function SwipeCard({ candidate, index, onLike, onPass }) {
   };
 
   const endDrag = () => {
-    if (!dragging || index !== 0) return;
+    if (!dragging || index !== 0 || leaving) return;
     setDragging(false);
 
-    if (pos.x > 120) onLike();
-    else if (pos.x < -120) onPass();
-    else setPos({ x: 0, y: 0 });
+    if (pos.x > 120) {
+      setLeaving('like');
+      setTimeout(onLike, 250);
+    } else if (pos.x < -120) {
+      setLeaving('pass');
+      setTimeout(onPass, 250);
+    } else {
+      setPos({ x: 0, y: 0 });
+    }
   };
+
 
   useEffect(() => {
     if (!dragging) return;
@@ -62,7 +71,13 @@ function SwipeCard({ candidate, index, onLike, onPass }) {
   const style =
     index === 0
       ? {
-        transform: `translate(${pos.x}px, ${pos.y}px) rotate(${pos.x * 0.08}deg)`,
+        transform:
+          leaving === 'like'
+            ? 'translateX(120vw) rotate(20deg)'
+            : leaving === 'pass'
+              ? 'translateX(-120vw) rotate(-20deg)'
+              : `translate(${pos.x}px, ${pos.y}px) rotate(${pos.x * 0.08}deg)`,
+        transition: leaving ? 'transform 0.25s ease-out' : 'none',
         zIndex: 20,
       }
       : {
@@ -70,6 +85,7 @@ function SwipeCard({ candidate, index, onLike, onPass }) {
         opacity: 1 - index * 0.3,
         zIndex: 10 - index,
       };
+
 
   return (
     <div

@@ -38,31 +38,31 @@ function Dashboard() {
     }
   }
 
-  const handleSwipe = async (action) => {
-    if (currentIndex >= candidates.length) return
+  const handleSwipe = (action) => {
+    if (currentIndex >= candidates.length) return;
 
-    const candidate = candidates[currentIndex]
+    const candidate = candidates[currentIndex];
 
-    try {
-      const res = await matchingAPI.swipe(candidate._id, action)
+    // 1️⃣ Advance UI immediately
+    setCurrentIndex(i => i + 1);
 
-      if (res.data.isMatch) {
-        setMatchNotification({
-          name: candidate.fullName,
-          message: "It's a match! 🎉",
-        })
-        setTimeout(() => setMatchNotification(null), 4000)
-      }
+    // 2️⃣ Fire API in background
+    matchingAPI
+      .swipe(candidate._id, action)
+      .then(res => {
+        if (res.data.isMatch) {
+          setMatchNotification({
+            name: candidate.fullName,
+            message: "It's a match! 🎉",
+          });
+          setTimeout(() => setMatchNotification(null), 4000);
+        }
+      })
+      .catch(err => {
+        console.error('Swipe error:', err);
+      });
+  };
 
-      if (currentIndex < candidates.length - 1) {
-        setCurrentIndex((i) => i + 1)
-      } else {
-        loadCandidates()
-      }
-    } catch (err) {
-      console.error('Swipe error:', err)
-    }
-  }
 
   const handleLike = () => handleSwipe('like')
   const handlePass = () => handleSwipe('pass')

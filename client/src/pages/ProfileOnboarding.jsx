@@ -19,31 +19,61 @@ export default function ProfileOnboarding() {
         availability: 'Medium',
     });
 
+    const [errors, setErrors] = useState({});
     const [newSkill, setNewSkill] = useState('');
     const [newInterest, setNewInterest] = useState('');
     const [pendingPhoto, setPendingPhoto] = useState(null);
     const [photoPreview, setPhotoPreview] = useState(null);
     const [saving, setSaving] = useState(false);
-    const [error, setError] = useState('');
 
+    /* ---------------- PHOTO ---------------- */
     const handlePhotoSelect = (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         if (file.size > MAX_IMAGE_SIZE) {
-            setError('Image must be between 1–2 MB');
+            setErrors(prev => ({
+                ...prev,
+                photo: 'Image must be under 2 MB',
+            }));
             return;
         }
 
-        setError('');
+        setErrors(prev => ({ ...prev, photo: '' }));
         setPendingPhoto(file);
         setPhotoPreview(URL.createObjectURL(file));
     };
 
+    /* ---------------- VALIDATION ---------------- */
+    const validate = () => {
+        const e = {};
+
+        if (!formData.bio.trim() || formData.bio.trim().length < 10) {
+            e.bio = 'Bio must be at least 10 characters';
+        }
+
+        if (formData.skills.length === 0) {
+            e.skills = 'Add at least one skill';
+        }
+
+        if (formData.interests.length === 0) {
+            e.interests = 'Add at least one interest';
+        }
+
+        if (!formData.availability) {
+            e.availability = 'Select availability';
+        }
+
+        setErrors(e);
+        return Object.keys(e).length === 0;
+    };
+
+    /* ---------------- SUBMIT ---------------- */
     const handleSubmit = async () => {
+        if (!validate()) return;
+
         try {
             setSaving(true);
-            setError('');
 
             let profileImage = '';
 
@@ -59,33 +89,36 @@ export default function ProfileOnboarding() {
 
             await updateUser();
             navigate('/dashboard', { replace: true });
-        } catch (err) {
-            setError('Failed to complete onboarding');
+        } catch {
+            setErrors({ global: 'Failed to complete onboarding' });
         } finally {
             setSaving(false);
         }
     };
 
+    /* ---------------- TAG HELPERS ---------------- */
     const addSkill = () => {
         if (!newSkill.trim()) return;
-        if (formData.skills.includes(newSkill)) return;
 
-        setFormData({
-            ...formData,
-            skills: [...formData.skills, newSkill.trim()],
-        });
+        setFormData(prev => ({
+            ...prev,
+            skills: [...prev.skills, newSkill.trim()],
+        }));
+
         setNewSkill('');
+        setErrors(prev => ({ ...prev, skills: '' }));
     };
 
     const addInterest = () => {
         if (!newInterest.trim()) return;
-        if (formData.interests.includes(newInterest)) return;
 
-        setFormData({
-            ...formData,
-            interests: [...formData.interests, newInterest.trim()],
-        });
+        setFormData(prev => ({
+            ...prev,
+            interests: [...prev.interests, newInterest.trim()],
+        }));
+
         setNewInterest('');
+        setErrors(prev => ({ ...prev, interests: '' }));
     };
 
     return (
@@ -113,20 +146,18 @@ export default function ProfileOnboarding() {
                             />
                         </label>
                     </div>
+                    {errors.photo && <p className="error">{errors.photo}</p>}
 
-                    <p className="photo-hint">Image size: 0–2 MB (JPG / PNG)</p>
-                    <p className="onboard-hint">!Make sure to fill all the fields to complete onboarding!</p>
-                    
-
-                    {error && <div className="error">{error}</div>}
-
+                    {/* BIO */}
                     <textarea
                         placeholder="Short bio"
                         value={formData.bio}
-                        onChange={(e) =>
-                            setFormData({ ...formData, bio: e.target.value })
-                        }
+                        onChange={(e) => {
+                            setFormData({ ...formData, bio: e.target.value });
+                            setErrors(prev => ({ ...prev, bio: '' }));
+                        }}
                     />
+                    {errors.bio && <p className="error">{errors.bio}</p>}
 
                     {/* SKILLS */}
                     <div className="tag-input">
@@ -138,17 +169,18 @@ export default function ProfileOnboarding() {
                         />
                         <button onClick={addSkill}>Add</button>
                     </div>
+                    {errors.skills && <p className="error">{errors.skills}</p>}
 
                     <div className="tags">
-                        {formData.skills.map((s) => (
+                        {formData.skills.map(s => (
                             <span key={s} className="tag">
                                 {s}
                                 <button
                                     onClick={() =>
-                                        setFormData({
-                                            ...formData,
-                                            skills: formData.skills.filter(x => x !== s),
-                                        })
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            skills: prev.skills.filter(x => x !== s),
+                                        }))
                                     }
                                 >
                                     ×
@@ -167,17 +199,18 @@ export default function ProfileOnboarding() {
                         />
                         <button onClick={addInterest}>Add</button>
                     </div>
+                    {errors.interests && <p className="error">{errors.interests}</p>}
 
                     <div className="tags">
-                        {formData.interests.map((i) => (
+                        {formData.interests.map(i => (
                             <span key={i} className="tag">
                                 {i}
                                 <button
                                     onClick={() =>
-                                        setFormData({
-                                            ...formData,
-                                            interests: formData.interests.filter(x => x !== i),
-                                        })
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            interests: prev.interests.filter(x => x !== i),
+                                        }))
                                     }
                                 >
                                     ×
@@ -186,21 +219,28 @@ export default function ProfileOnboarding() {
                         ))}
                     </div>
 
-                    <select id='availability-box'
+                    {/* AVAILABILITY */}
+                    <select
                         value={formData.availability}
-                        onChange={(e) =>
-                            setFormData({
-                                ...formData,
-                                availability: e.target.value,
-                            })
-                        }
+                        onChange={(e) => {
+                            setFormData({ ...formData, availability: e.target.value });
+                            setErrors(prev => ({ ...prev, availability: '' }));
+                        }}
                     >
+                        <option value="">Select availability</option>
                         <option value="High">High</option>
                         <option value="Medium">Medium</option>
                         <option value="Low">Low</option>
                     </select>
+                    {errors.availability && <p className="error">{errors.availability}</p>}
 
-                    <button className="finish-btn" onClick={handleSubmit} disabled={saving}>
+                    {errors.global && <p className="error">{errors.global}</p>}
+
+                    <button
+                        className="finish-btn"
+                        onClick={handleSubmit}
+                        disabled={saving}
+                    >
                         {saving ? 'Saving…' : 'Finish'}
                     </button>
                 </div>

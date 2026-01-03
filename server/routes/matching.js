@@ -120,6 +120,7 @@ router.get('/incoming', auth, async (req, res) => {
     try {
         const incoming = await Interaction.find({
             receiverId: req.user,
+            senderId: { $ne: req.user },
             type: 'like',
         }).populate('senderId', 'fullName profileImage');
 
@@ -138,6 +139,7 @@ router.get('/pending', auth, async (req, res) => {
     try {
         const pending = await Interaction.find({
             senderId: req.user,
+            receiverId: { $ne: req.user },
             type: 'like',
         }).populate('receiverId', 'fullName profileImage');
 
@@ -173,13 +175,14 @@ router.post('/swipe', auth, requireCompleteProfile, async (req, res) => {
         }
 
         if (type === 'like' && incoming) {
-            if (!outgoing) {
-                await Interaction.create({
-                    senderId: req.user,
-                    receiverId: targetId,
-                    type: 'like',
-                });
-            }
+
+            // ✅ CLEAN UP ALL OLD INTERACTIONS BETWEEN THE TWO USERS
+            await Interaction.deleteMany({
+                $or: [
+                    { senderId: req.user, receiverId: targetId },
+                    { senderId: targetId, receiverId: req.user },
+                ],
+            });
 
             const conversationId = [req.user, targetId].sort().join('_');
 
@@ -206,6 +209,7 @@ router.post('/swipe', auth, requireCompleteProfile, async (req, res) => {
 
             return res.json({ success: true, isMatch: true });
         }
+
 
         if (outgoing) {
             return res.status(400).json({ msg: 'Already swiped on this user' });

@@ -80,31 +80,33 @@ export default function Matches() {
           {incoming.length === 0 && <p className="empty">No incoming requests</p>}
 
           <div className="card-grid">
-            {incoming.map((u) => (
-              <div key={u._id} className="match-card">
-                <img
-                  className="avatar-img"
-                  src={getAvatarSrc(u.profileImage)}
-                  alt={u.fullName}
-                />
-                <h3>{u.fullName}</h3>
+            {incoming
+              .filter(u => String(u._id) !== myId)
+              .map(u => (
+                <div key={u._id} className="match-card">
+                  <img
+                    className="avatar-img"
+                    src={getAvatarSrc(u.profileImage)}
+                    alt={u.fullName}
+                  />
+                  <h3>{u.fullName}</h3>
 
-                <div className="actions">
-                  <button
-                    className="accept"
-                    onClick={() => acceptRequest(u._id)}
-                  >
-                    Accept
-                  </button>
-                  <button
-                    className="reject"
-                    onClick={() => ignoreRequest(u._id)}
-                  >
-                    Ignore
-                  </button>
+                  <div className="actions">
+                    <button
+                      className="accept"
+                      onClick={() => acceptRequest(u._id)}
+                    >
+                      Accept
+                    </button>
+                    <button
+                      className="reject"
+                      onClick={() => ignoreRequest(u._id)}
+                    >
+                      Ignore
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         </section>
 
@@ -114,16 +116,18 @@ export default function Matches() {
           {pending.length === 0 && <p className="empty">No pending requests</p>}
 
           <div className="card-grid">
-            {pending.map((u) => (
-              <div key={u._id} className="match-card muted">
-                <img
-                  className="avatar-img"
-                  src={getAvatarSrc(u.profileImage)}
-                  alt={u.fullName}
-                />
-                <h3>{u.fullName}</h3>
-                <p className="status">Waiting for response</p>
-              </div>
+            {pending
+              .filter(u => String(u._id) !== myId)
+              .map(u => (
+            <div key={u._id} className="match-card muted">
+              <img
+                className="avatar-img"
+                src={getAvatarSrc(u.profileImage)}
+                alt={u.fullName}
+              />
+              <h3>{u.fullName}</h3>
+              <p className="status">Waiting for response</p>
+            </div>
             ))}
           </div>
         </section>

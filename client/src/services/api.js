@@ -65,9 +65,10 @@ export const chatAPI = {
    MATCH REQUEST API
 ========================= */
 export const matchAPI = {
-  getRequests: () => api.get('/api/chat/requests'),
-  getPending: () => api.get('/api/chat/pending'),
+  getRequests: () => api.get('/api/matches/incoming'),
+  getPending: () => api.get('/api/matches/pending'),
 };
+
 
 /* =========================
    PROFILE API

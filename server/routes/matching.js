@@ -113,6 +113,43 @@ router.get('/candidates', auth, requireCompleteProfile, async (req, res) => {
 });
 
 /* =========================
+   INCOMING REQUESTS
+   (They liked you, you haven't responded)
+========================= */
+router.get('/incoming', auth, async (req, res) => {
+    try {
+        const incoming = await Interaction.find({
+            receiverId: req.user,
+            type: 'like',
+        }).populate('senderId', 'fullName profileImage');
+
+        res.json(incoming.map(i => i.senderId));
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Failed to fetch incoming requests' });
+    }
+});
+
+/* =========================
+   PENDING REQUESTS
+   (You liked them, they haven't responded)
+========================= */
+router.get('/pending', auth, async (req, res) => {
+    try {
+        const pending = await Interaction.find({
+            senderId: req.user,
+            type: 'like',
+        }).populate('receiverId', 'fullName profileImage');
+
+        res.json(pending.map(i => i.receiverId));
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Failed to fetch pending requests' });
+    }
+});
+
+
+/* =========================
    SWIPE HANDLER
 ========================= */
 router.post('/swipe', auth, requireCompleteProfile, async (req, res) => {

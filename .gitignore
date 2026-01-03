@@ -1,8 +1,6 @@
 # Environment / credentials
 .env
 secrets.json
-config/
-config/
 
 # Node + build
 node_modules/

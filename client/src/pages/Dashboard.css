@@ -83,9 +83,7 @@
 }
 
 .dashboard-loading,
-.dashboard-error,
-.dashboard-empty {
-  min-height: calc(100vh - 70px);
+.dashboard-error {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -93,11 +91,26 @@
   text-align: center;
 
   background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(6px);
   border-radius: 20px;
   margin: 20px;
 }
 
+.dashboard-wrapper {
+    display: flex;
+    justify-content: center; 
+    align-items: center;   
+    min-height: calc(100vh - 70px); 
+}
+
+.dashboard-empty {
+    min-height: auto;       
+    width: 90%;            
+    max-width: 400px;       
+    padding: 40px;
+    background: #0f172aa6;
+    backdrop-filter: blur(6px);
+    border-radius: 20px;
+}
 
 .spinner {
   width: 50px;

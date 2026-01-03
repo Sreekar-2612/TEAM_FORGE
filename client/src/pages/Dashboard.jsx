@@ -95,9 +95,11 @@ function Dashboard() {
     return (
       <>
         <Navbar />
-        <div className="dashboard-empty">
-          <h2>No more candidates</h2>
-          <button onClick={loadCandidates}>Refresh</button>
+        <div className="dashboard-wrapper">
+          <div className="dashboard-empty">
+            <h2>No more candidates</h2>
+            <button onClick={loadCandidates}>Refresh</button>
+          </div>
         </div>
       </>
     )

@@ -3,7 +3,7 @@ import { getAvatarSrc } from '../services/avatar';
 import './SwipeCard.css';
 
 
-const [leaving, setLeaving] = useState(null);
+const [leaving, setLeaving] = useState(false);
 
 const resolveImage = (img) => {
   if (!img) return getAvatarSrc(null);

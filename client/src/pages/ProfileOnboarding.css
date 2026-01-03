@@ -150,16 +150,6 @@ textarea {
     cursor: not-allowed;
 }
 
-/* ERROR */
-.error {
-    background: #f8d7da;
-    color: #721c24;
-    padding: 12px;
-    border-radius: 10px;
-    margin-bottom: 16px;
-    text-align: center;
-}
-
 #availability-box {
     margin-bottom: 20px;
     cursor: pointer;

@@ -1,5 +1,5 @@
-const app = require('../server/app');
-const connectDB = require('../server/config/db');
+const app = require('../app');
+const connectDB = require('../config/db');
 
 let isConnected = false;
 
@@ -10,6 +10,7 @@ module.exports = async (req, res) => {
             isConnected = true;
             console.log('MongoDB connected');
         }
+
         return app(req, res);
     } catch (err) {
         console.error('Fatal server error:', err);

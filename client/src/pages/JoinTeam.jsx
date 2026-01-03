@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { teamAPI } from '../services/api';
 import Navbar from '../components/Navbar';
+import './JoinTeam.css';
 
 export default function JoinTeam() {
     const { token } = useParams();
@@ -55,7 +56,7 @@ export default function JoinTeam() {
     return (
         <>
             <Navbar />
-            <div style={{ padding: '2rem', textAlign: 'center' }}>
+            <div className='messageBox' style={{ padding: '2rem', textAlign: 'center' }}>
                 <h2>Team Invitation</h2>
 
                 {status === 'loading' && <p>Processing invite…</p>}

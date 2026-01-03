@@ -1,57 +1,67 @@
-import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { useEffect, useState } from 'react'
-import { chatAPI } from '../services/api';
-import { matchAPI } from '../services/api'
-import './Navbar.css'
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useEffect, useState } from 'react';
+import { chatAPI, matchAPI } from '../services/api';
+import './Navbar.css';
 
 function Navbar() {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [unreadChats, setUnreadChats] = useState(0);
-  const [incomingCount, setIncomingCount] = useState(0)
+  const [incomingCount, setIncomingCount] = useState(0);
 
   const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
+    logout();
+    navigate('/login');
+  };
 
+  /* -------------------------------
+     CHAT UNREAD (SOURCE OF TRUTH)
+  -------------------------------- */
   const fetchUnreadChats = async () => {
     try {
       const res = await chatAPI.getConversations();
-      const total = res.data.reduce(
+      const total = (res.data || []).reduce(
         (sum, c) => sum + (c.unreadCount || 0),
         0
       );
       setUnreadChats(total);
-    } catch { }
+    } catch (err) {
+      console.error('Failed to fetch unread chats', err);
+    }
   };
 
+  /* -------------------------------
+     MATCH REQUESTS
+  -------------------------------- */
   const fetchIncoming = async () => {
     try {
-      const res = await matchAPI.getRequests()
-      setIncomingCount(res.data.length)
+      const res = await matchAPI.getRequests();
+      setIncomingCount(res.data.length);
     } catch (err) {
-      console.error('Failed to fetch incoming requests')
+      console.error('Failed to fetch incoming requests');
     }
-  }
+  };
 
+  /* -------------------------------
+     INIT + POLL
+  -------------------------------- */
   useEffect(() => {
     fetchUnreadChats();
+    fetchIncoming();
 
-    const handler = () => fetchUnreadChats();
-    window.addEventListener('refreshChats', handler);
-    return () => window.removeEventListener('refreshChats', handler);
+    const interval = setInterval(fetchUnreadChats, 5000);
+    return () => clearInterval(interval);
   }, []);
 
-
+  /* -------------------------------
+     REFRESH ON ROUTE CHANGE
+  -------------------------------- */
   useEffect(() => {
-    fetchIncoming()
-
-    const handler = () => fetchIncoming()
-    window.addEventListener('refreshRequests', handler)
-    return () => window.removeEventListener('refreshRequests', handler)
-  }, [])
+    fetchUnreadChats();
+  }, [location.pathname]);
 
   return (
     <nav className="navbar">
@@ -63,7 +73,6 @@ function Navbar() {
         <div className="navbar-links">
           <Link to="/dashboard" className="nav-link">Discover</Link>
 
-          {/* 🔴 BADGE INSERTED HERE (ONLY CHANGE IN UI) */}
           <Link
             to="/matches"
             className="nav-link"
@@ -99,7 +108,7 @@ function Navbar() {
         </div>
       </div>
     </nav>
-  )
+  );
 }
 
-export default Navbar
+export default Navbar;

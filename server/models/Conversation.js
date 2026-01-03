@@ -2,32 +2,15 @@ const mongoose = require('mongoose');
 
 const ConversationSchema = new mongoose.Schema(
     {
-        conversationId: {
-            type: String,
-            required: true,
-            unique: true,
-            index: true,
-        },
+        conversationId: { type: String, required: true, unique: true },
         participants: {
             type: [mongoose.Schema.Types.ObjectId],
             ref: 'User',
             required: true,
-            validate: {
-                validator: function (arr) {
-                    return arr.length === 2;
-                },
-                message: 'Conversation must have exactly 2 participants',
-            },
+            validate: arr => arr.length === 2,
         },
-        lastMessageAt: {
-            type: Date,
-            default: Date.now,
-        },
-        lastMessage: {
-            type: String,
-            default: '',
-            maxlength: 100,
-        },
+        lastMessage: { type: String, maxlength: 100 },
+        lastMessageAt: { type: Date, default: Date.now },
     },
     { timestamps: true }
 );

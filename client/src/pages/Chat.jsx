@@ -4,20 +4,6 @@ import { useSearchParams } from 'react-router-dom';
 import { getAvatarSrc } from '../services/avatar';
 import { useAuth } from '../context/AuthContext';
 import { chatAPI } from '../services/api';
-import {
-  connectSocket,
-  disconnectSocket,
-  joinConversation,
-  sendMessage,
-  sendTyping,
-  markAsRead,
-  onNewMessage,
-  onUserTyping,
-  onMessagesRead,
-  onUserOnline,
-  onUserOffline,
-  offEvent,
-} from '../services/socket';
 import './Chat.css';
 
 export default function Chat() {
@@ -26,60 +12,104 @@ export default function Chat() {
   const [activeId, setActiveId] = useState(null);
   const [messages, setMessages] = useState({});
   const [input, setInput] = useState('');
-  const [typingMap, setTypingMap] = useState({});
-  const [onlineUsers, setOnlineUsers] = useState(new Set());
   const [loading, setLoading] = useState(true);
 
   const { user } = useAuth();
   const myUserId = user?._id;
 
   const messagesEndRef = useRef(null);
-  const typingTimeout = useRef(null);
+  const chatContainerRef = useRef(null);
+  const shouldAutoScrollRef = useRef(true);
+  const prevMsgCountRef = useRef(0);
 
   /* -------------------------------
-     INIT
+     LOAD CONVERSATIONS
   -------------------------------- */
+  const loadConversations = async () => {
+    const res = await chatAPI.getConversations();
+    setConversations(res.data || []);
+  };
+
   useEffect(() => {
-    connectSocket();
-
-    chatAPI.getConversations().then((res) => {
-      setConversations(res.data);
+    (async () => {
+      await loadConversations();
       setLoading(false);
-    });
-
-    onNewMessage(handleNewMessage);
-    onUserTyping(handleTyping);
-    onMessagesRead(handleRead);
-    onUserOnline((id) =>
-      setOnlineUsers((prev) => new Set(prev).add(id))
-    );
-    onUserOffline((id) =>
-      setOnlineUsers((prev) => {
-        const s = new Set(prev);
-        s.delete(id);
-        return s;
-      })
-    );
-
-    return () => {
-      offEvent('new_message', handleNewMessage);
-      offEvent('user_typing', handleTyping);
-      offEvent('messages_read', handleRead);
-      offEvent('user_online');
-      offEvent('user_offline');
-      disconnectSocket();
-    };
+    })();
   }, []);
 
   /* -------------------------------
-     OPEN CHAT FROM MATCHES
+     POLL CONVERSATIONS
+  -------------------------------- */
+  useEffect(() => {
+    const interval = setInterval(loadConversations, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  /* -------------------------------
+     POLL MESSAGES (SMART SCROLL)
+  -------------------------------- */
+  useEffect(() => {
+    if (!activeId) return;
+
+    const fetchMessages = async () => {
+      const res = await chatAPI.getMessages(activeId);
+      const newMessages = res.data.messages || [];
+
+      const prevCount = prevMsgCountRef.current;
+      const newCount = newMessages.length;
+
+      setMessages(prev => ({
+        ...prev,
+        [activeId]: newMessages,
+      }));
+
+      // 🔴 ONLY SCROLL IF NEW MESSAGE ARRIVED
+      if (newCount > prevCount && shouldAutoScrollRef.current) {
+        scrollBottom();
+      }
+
+      prevMsgCountRef.current = newCount;
+    };
+
+    fetchMessages();
+    const interval = setInterval(fetchMessages, 1000);
+    return () => clearInterval(interval);
+  }, [activeId]);
+
+  /* -------------------------------
+     TRACK USER SCROLL
+  -------------------------------- */
+  useEffect(() => {
+    const el = chatContainerRef.current;
+    if (!el) return;
+
+    const handleScroll = () => {
+      const threshold = 120;
+      const atBottom =
+        el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+
+      shouldAutoScrollRef.current = atBottom;
+    };
+
+    el.addEventListener('scroll', handleScroll);
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollBottom = () => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 50);
+  };
+
+  /* -------------------------------
+     OPEN FROM MATCHES
   -------------------------------- */
   useEffect(() => {
     const userId = searchParams.get('userId');
     if (!userId || conversations.length === 0) return;
 
-    const convo = conversations.find((c) =>
-      c.participants.some((p) => p._id === userId)
+    const convo = conversations.find(c =>
+      c.participants.some(p => p._id === userId)
     );
 
     if (convo) openConversation(convo.conversationId);
@@ -87,125 +117,63 @@ export default function Chat() {
   }, [conversations]);
 
   /* -------------------------------
-     HELPERS
+     OPEN CHAT
   -------------------------------- */
   const openConversation = async (conversationId) => {
     setActiveId(conversationId);
+    shouldAutoScrollRef.current = true;
+    prevMsgCountRef.current = 0;
 
-    setConversations((prev) =>
-      prev.map((c) =>
-        c.conversationId === conversationId
-          ? { ...c, unreadCount: 0 }
-          : c
-      )
-    );
+    const res = await chatAPI.getMessages(conversationId);
+    setMessages(prev => ({
+      ...prev,
+      [conversationId]: res.data.messages,
+    }));
 
-    if (!messages[conversationId]) {
-      const res = await chatAPI.getMessages(conversationId);
-      setMessages((prev) => ({
-        ...prev,
-        [conversationId]: res.data.messages,
-      }));
-    }
-
-    joinConversation(conversationId);
-    markAsRead(conversationId);
+    await loadConversations();
     scrollBottom();
   };
 
-  const scrollBottom = () =>
-    setTimeout(
-      () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }),
-      50
-    );
-
-  const getOtherUser = (convo) =>
-    convo.participants.find((p) => p._id !== myUserId);
+  const getOtherUser = convo =>
+    convo.participants.find(p => p._id !== myUserId);
 
   /* -------------------------------
-     SOCKET HANDLERS
+     SEND MESSAGE
   -------------------------------- */
-  const handleNewMessage = (msg) => {
-    setMessages((prev) => {
-      const existing = prev[msg.conversationId] || [];
-      if (existing.some((m) => m._id === msg._id)) return prev;
-
-      return {
-        ...prev,
-        [msg.conversationId]: [...existing, msg].sort(
-          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
-        ),
-      };
-    });
-
-    setConversations((prev) =>
-      prev
-        .map((c) => {
-          if (c.conversationId !== msg.conversationId) return c;
-
-          const isActive = msg.conversationId === activeId;
-          const isFromMe = msg.senderId?._id === myUserId;
-
-          return {
-            ...c,
-            lastMessage: msg.content,
-            lastMessageAt: msg.createdAt,
-            unreadCount: isActive || isFromMe ? 0 : c.unreadCount + 1,
-          };
-        })
-        .sort(
-          (a, b) =>
-            new Date(b.lastMessageAt) - new Date(a.lastMessageAt)
-        )
-    );
-
-    if (msg.conversationId === activeId) {
-      markAsRead(activeId);
-    }
-
-    scrollBottom();
-  };
-
-  const handleTyping = ({ conversationId }) => {
-    setTypingMap((p) => ({ ...p, [conversationId]: true }));
-    clearTimeout(typingTimeout.current);
-    typingTimeout.current = setTimeout(
-      () => setTypingMap((p) => ({ ...p, [conversationId]: false })),
-      2000
-    );
-  };
-
-  const handleRead = ({ conversationId }) => {
-    setConversations((prev) =>
-      prev.map((c) =>
-        c.conversationId === conversationId
-          ? { ...c, unreadCount: 0 }
-          : c
-      )
-    );
-  };
-
-  /* -------------------------------
-     SEND
-  -------------------------------- */
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim() || !activeId) return;
 
-    const convo = conversations.find((c) => c.conversationId === activeId);
-    if (!convo) return;
+    const tempId = `temp-${Date.now()}`;
 
-    const other = getOtherUser(convo);
-    sendMessage(activeId, other._id, input);
+    const optimisticMessage = {
+      _id: tempId,
+      content: input,
+      senderId: { _id: myUserId },
+      createdAt: new Date().toISOString(),
+    };
+
+    // 🔴 INSTANT UI UPDATE
+    setMessages(prev => ({
+      ...prev,
+      [activeId]: [...(prev[activeId] || []), optimisticMessage],
+    }));
+
     setInput('');
+    shouldAutoScrollRef.current = true;
+    scrollBottom();
+
+    try {
+      await chatAPI.sendMessage(activeId, optimisticMessage.content);
+    } catch (err) {
+      // Optional: remove optimistic message on failure
+      setMessages(prev => ({
+        ...prev,
+        [activeId]: prev[activeId].filter(m => m._id !== tempId),
+      }));
+    }
   };
 
-  const handleTypingInput = () => {
-    const convo = conversations.find((c) => c.conversationId === activeId);
-    if (!convo) return;
 
-    const other = getOtherUser(convo);
-    sendTyping(activeId, other._id);
-  };
   if (loading) {
     return (
       <>
@@ -220,11 +188,10 @@ export default function Chat() {
       <Navbar />
 
       <div className="chat-container">
-        {/* SIDEBAR */}
         <div className="chat-sidebar">
           <h2>Messages</h2>
 
-          {conversations.map((c) => {
+          {conversations.map(c => {
             const other = getOtherUser(c);
             return (
               <div
@@ -240,13 +207,7 @@ export default function Chat() {
                 />
 
                 <div className="conversation-info">
-                  <div className="name">
-                    {other.fullName}
-                    {onlineUsers.has(other._id) && (
-                      <span className="online-dot" />
-                    )}
-                  </div>
-
+                  <div className="name">{other.fullName}</div>
                   <div className="preview">{c.lastMessage}</div>
                 </div>
 
@@ -258,64 +219,41 @@ export default function Chat() {
           })}
         </div>
 
-        {/* CHAT */}
         <div className="chat-main">
           {!activeId && (
-            <div className="empty-chat">
-              Select a conversation to start chatting
-            </div>
+            <div className="empty-chat">Select a conversation</div>
           )}
 
-          {activeId && (() => {
-            const convo = conversations.find(
-              (c) => c.conversationId === activeId
-            );
-
-            return (
-              <>
-                {convo?.matchExplanation && (
-                  <div className="match-explanation">
-                    {convo.matchExplanation}
+          {activeId && (
+            <>
+              <div
+                className="chat-messages"
+                ref={chatContainerRef}
+              >
+                {(messages[activeId] || []).map(m => (
+                  <div
+                    key={m._id}
+                    className={`message ${m.senderId._id === myUserId ? 'sent' : 'received'
+                      }`}
+                  >
+                    {m.content}
                   </div>
-                )}
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
 
-                <div className="chat-messages">
-                  {(messages[activeId] || []).map((m) => (
-                    <div
-                      key={m._id}
-                      className={`message ${m.system
-                          ? 'system'
-                          : m.senderId?._id === myUserId
-                            ? 'sent'
-                            : 'received'
-                        }`}
-                    >
-                      {m.content}
-                    </div>
-                  ))}
-
-                  {typingMap[activeId] && (
-                    <div className="typing">typing…</div>
-                  )}
-
-                  <div ref={messagesEndRef} />
-                </div>
-
-                <div className="chat-input">
-                  <input
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleTypingInput}
-                    onKeyPress={(e) =>
-                      e.key === 'Enter' && handleSend()
-                    }
-                    placeholder="Type a message…"
-                  />
-                  <button onClick={handleSend}>Send</button>
-                </div>
-              </>
-            );
-          })()}
+              <div className="chat-input">
+                <input
+                  autoFocus
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  onKeyPress={e => e.key === 'Enter' && handleSend()}
+                  placeholder="Type a message…"
+                />
+                <button onClick={handleSend}>Send</button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </>

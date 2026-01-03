@@ -48,12 +48,18 @@ export const matchingAPI = {
 /* =========================
    CHAT API
 ========================= */
+
 export const chatAPI = {
   getConversations: () => api.get('/api/chat/conversations'),
   getMessages: (conversationId, params) =>
     api.get(`/api/chat/messages/${conversationId}`, { params }),
+
+  sendMessage: (conversationId, content) =>
+    api.post(`/api/chat/messages/${conversationId}`, { content }),
+
   getMatches: () => api.get('/api/chat/matches'),
 };
+
 
 /* =========================
    MATCH REQUEST API
@@ -89,10 +95,11 @@ export const teamAPI = {
   updateCapacity: (teamId, maxMembers) =>
     api.put(`/api/teams/${teamId}/capacity`, { maxMembers }),
   joinByInvite: (token) => api.post(`/api/teams/join/${token}`),
+  sendTeamMessage: (teamId, data) =>
+    api.post(`/api/teams/${teamId}/message`, data),
   getTeam: (teamId) => api.get('/api/teams/mine').then(res =>
     res.data.find(t => t._id === teamId)
   ),
-  /* 🔽 NEW */
   inviteUser: (teamId, userId) =>
     api.post(`/api/teams/${teamId}/invite`, { userId }),
 
@@ -104,7 +111,6 @@ export const teamAPI = {
 
   rejectInvite: (teamId, userId) =>
     api.post(`/api/teams/${teamId}/invites/${userId}/reject`),
-  // 🔑 INVITES
   getMatchedUsers: (teamId) =>
     api.get(`/api/teams/${teamId}/matched-users`),
 };

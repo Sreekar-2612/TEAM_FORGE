@@ -3,7 +3,7 @@ import './TeamMembersPanel.css';
 
 export default function TeamMembersPanel({
     team,
-    onlineSet,
+    onlineSet = new Set(),
     currentUserId,
     onInviteClick,
     pendingInvites,
@@ -63,10 +63,6 @@ export default function TeamMembersPanel({
                             </div>
 
                         </div>
-
-                        <span
-                            className={`status-dot ${isOnline ? 'online' : 'offline'}`}
-                        />
                     </div>
                 );
             })}

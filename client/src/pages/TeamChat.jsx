@@ -4,16 +4,7 @@ import InviteModal from '../components/InviteModal';
 import { teamAPI } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import TeamMembersPanel from '../components/TeamMembersPanel';
-import { onUserOnline, onUserOffline } from '../services/socket';
 import { useAuth } from '../context/AuthContext';
-import {
-    connectSocket,
-    joinTeam,
-    leaveTeam,
-    sendTeamMessage,
-    onTeamMessage,
-    offEvent,
-} from '../services/socket';
 import Navbar from '../components/Navbar';
 import './TeamChat.css';
 
@@ -21,7 +12,6 @@ export default function TeamChat() {
     const { teamId } = useParams();
     const { user } = useAuth();
     const [team, setTeam] = useState(null);
-    const [onlineSet, setOnlineSet] = useState(new Set());
     const [showInvite, setShowInvite] = useState(false);
     const [pendingInvites, setPendingInvites] = useState([]);
     const [messages, setMessages] = useState([]);
@@ -39,56 +29,31 @@ export default function TeamChat() {
     -------------------------------- */
 
     useEffect(() => {
-        if (!team || !user) return;
-
-        const adminId =
-            typeof team.admin === 'object'
-                ? team.admin._id
-                : team.admin;
-
-        if (adminId !== user._id) return;
-
-        loadPendingInvites();
-    }, [team?._id, user?._id]);
-
-    useEffect(() => {
-        joinTeam(teamId);
-        onTeamMessage(handleIncoming);
-
-        return () => {
-            leaveTeam(teamId);
-            offEvent('team_message', handleIncoming);
+        const loadTeam = async () => {
+            try {
+                const res = await teamAPI.getTeam(teamId);
+                setTeam(res);
+            } catch (err) {
+                console.error('Failed to load team', err);
+            }
         };
+
+        loadTeam();
     }, [teamId]);
 
-    useEffect(() => {
-        teamAPI.getTeam(teamId).then(setTeam);
-
-        onUserOnline(id =>
-            setOnlineSet(prev => new Set(prev).add(id))
-        );
-
-        onUserOffline(id =>
-            setOnlineSet(prev => {
-                const s = new Set(prev);
-                s.delete(id);
-                return s;
-            })
-        );
-    }, [teamId]);
 
     useEffect(() => {
-        if (!team || !user) return;
-
-        if (adminId !== user._id) return;
-
-        const interval = setInterval(() => {
-            refreshTeamState();
+        const interval = setInterval(async () => {
+            try {
+                const updatedTeam = await teamAPI.getTeam(teamId);
+                setTeam(updatedTeam);
+            } catch (err) {
+                console.error('Failed to refresh team', err);
+            }
         }, 3000); // 3 seconds
 
         return () => clearInterval(interval);
-    }, [team, user]);
-
+    }, [teamId]);
 
 
 
@@ -144,8 +109,18 @@ export default function TeamChat() {
         loadHistory();
     }, [teamId]);
 
+    useEffect(() => {
+        const interval = setInterval(async () => {
+            try {
+                const res = await teamAPI.getTeamMessages(teamId);
+                setMessages((res.data || []).map(normalizeMessage));
+            } catch (err) {
+                console.error('Failed to poll team messages');
+            }
+        }, 3000);
 
-
+        return () => clearInterval(interval);
+    }, [teamId]);
 
     /* -------------------------------
        HANDLERS
@@ -160,22 +135,43 @@ export default function TeamChat() {
         }
     };
 
-
-    const handleIncoming = (msg) => {
-        if (msg.teamId !== teamId) return;
-        setMessages((prev) => [...prev, msg]);
-        scrollBottom();
-    };
-
     const scrollBottom = () =>
         setTimeout(() => bottomRef.current?.scrollIntoView(), 50);
 
-    const handleSend = () => {
+    const handleSend = async () => {
         if (!input.trim()) return;
 
-        sendTeamMessage(teamId, input);
-        setInput('');
+        try {
+            await teamAPI.sendTeamMessage(teamId, { content: input });
+
+            const res = await teamAPI.getTeamMessages(teamId);
+            setMessages((res.data || []).map(normalizeMessage));
+            setInput('');
+            scrollBottom();
+        } catch (err) {
+            console.error('Failed to send team message', err);
+        }
     };
+
+    const normalizeMessage = (m) => ({
+        teamId: m.teamId,
+        senderId:
+            typeof m.senderId === 'object'
+                ? m.senderId._id
+                : m.senderId,
+        senderName:
+            typeof m.senderId === 'object'
+                ? m.senderId.fullName
+                : m.senderName || 'Member',
+        senderAvatar:
+            typeof m.senderId === 'object'
+                ? m.senderId.profileImage
+                : '',
+        content: m.content,
+        createdAt: m.createdAt,
+    });
+
+
 
     const loadPendingInvites = async () => {
         try {
@@ -203,6 +199,16 @@ export default function TeamChat() {
     /* -------------------------------
        RENDER
     -------------------------------- */
+
+    if (!team || !user) {
+        return (
+            <>
+                <Navbar />
+                <div className="team-chat-loading">Loading team…</div>
+            </>
+        );
+    }
+
     return (
         <>
             <Navbar />
@@ -210,7 +216,7 @@ export default function TeamChat() {
                 <div className="team-chat-main">
                     <div className="team-chat-page">
                         <div className="team-chat-header">
-                            <h2>Team Chat</h2>
+                            <h2>{team.name}</h2>
                             <div className="team-chat-actions">
                                 <button
                                     className="project-btn"
@@ -233,8 +239,8 @@ export default function TeamChat() {
                         <div className="team-chat-messages">
                             {messages.map((m, idx) => (
                                 <div
-                                    key={idx}
-                                    className={`team-message ${m.senderId?.toString() === user._id?.toString()
+                                    key={m._id || m.createdAt}
+                                    className={`team-message ${String(m.senderId) === String(user._id)
                                         ? 'sent'
                                         : 'received'
                                         }`}
@@ -260,7 +266,6 @@ export default function TeamChat() {
 
                 <TeamMembersPanel
                     team={team}
-                    onlineSet={onlineSet}
                     currentUserId={user._id}
                     pendingInvites={pendingInvites}
                     onInviteClick={() => setShowInvite(true)}

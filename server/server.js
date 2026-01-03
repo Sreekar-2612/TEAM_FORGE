@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const connectDB = require('./config/db');
 
 const authRoutes = require('./routes/auth');
 const chatRoutes = require('./routes/chat');
@@ -12,23 +11,20 @@ const aiRoutes = require('./routes/ai');
 
 const app = express();
 
-/* ---------- HARD BLOCK DB ---------- */
-await connectDB();
-console.log('MongoDB connected');
-
-/* ---------- MIDDLEWARE ---------- */
 app.use(express.json());
 
 const allowedOrigins = [
-	'https://collab-quest-r6tq97v8j-bhaskar-tejas-projects.vercel.app',
+	'https://collab-quest-bice.vercel.app',
 	'http://localhost:5173',
 ];
 
 app.use((req, res, next) => {
 	const origin = req.headers.origin;
+
 	if (allowedOrigins.includes(origin)) {
 		res.setHeader('Access-Control-Allow-Origin', origin);
 	}
+
 	res.setHeader('Access-Control-Allow-Credentials', 'true');
 	res.setHeader(
 		'Access-Control-Allow-Headers',
@@ -43,7 +39,7 @@ app.use((req, res, next) => {
 	next();
 });
 
-/* ---------- ROUTES ---------- */
+/* ROUTES */
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/teams', teamRoutes);

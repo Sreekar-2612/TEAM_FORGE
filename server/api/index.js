@@ -1,12 +1,18 @@
-const app = require('../server');
-const connectDB = require('../config/db');
+const app = require('../server/app');
+const connectDB = require('../server/config/db');
 
-let ready = false;
+let isConnected = false;
 
 module.exports = async (req, res) => {
-    if (!ready) {
-        await connectDB();
-        ready = true;
+    try {
+        if (!isConnected) {
+            await connectDB();
+            isConnected = true;
+            console.log('MongoDB connected');
+        }
+        return app(req, res);
+    } catch (err) {
+        console.error('Fatal server error:', err);
+        res.status(500).json({ message: 'Internal server error' });
     }
-    return app(req, res);
 };

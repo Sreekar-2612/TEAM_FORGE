@@ -8,130 +8,137 @@ import './Profile.css';
 const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB
 
 function Profile() {
-  const { user: authUser, updateUser } = useAuth()
-  const [loading, setLoading] = useState(false)
-  const [saving, setSaving] = useState(false)
+  const { user: authUser, updateUser } = useAuth();
+
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+
   const [pendingPhoto, setPendingPhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
-  const [message, setMessage] = useState('')
 
   const [formData, setFormData] = useState({
-    bio: authUser?.bio || '',
-    skills: authUser?.skills || [],
-    interests: authUser?.interests || [],
-    availability: authUser?.availability || 'Medium',
-    profileImage: authUser?.profileImage || '',
-  })
+    bio: '',
+    skills: [],
+    interests: [],
+    availability: 'Medium',
+    profileImage: '',
+  });
 
-  const [newSkill, setNewSkill] = useState('')
-  const [newInterest, setNewInterest] = useState('')
-
-  useEffect(() => {
-    loadProfile()
-  }, [])
-
-  const loadProfile = async () => {
-    try {
-      setLoading(true)
-      const response = await userAPI.getProfile()
-      setFormData(prev => ({
-        ...prev,
-        bio: response.data.bio || '',
-        skills: response.data.skills || [],
-        interests: response.data.interests || [],
-        availability: response.data.availability || 'Medium',
-        profileImage: prev.profileImage || response.data.profileImage || '',
-      }));
-
-
-    } catch (error) {
-      console.error('Failed to load profile:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const [newSkill, setNewSkill] = useState('');
+  const [newInterest, setNewInterest] = useState('');
 
   /* =========================
-     PROFILE PHOTO UPLOAD
+     LOAD PROFILE (SINGLE SOURCE)
   ========================= */
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const res = await userAPI.getProfile();
+        setFormData({
+          bio: res.data.bio || '',
+          skills: res.data.skills || [],
+          interests: res.data.interests || [],
+          availability: res.data.availability || 'Medium',
+          profileImage: res.data.profileImage || '',
+        });
+      } catch (err) {
+        console.error('Failed to load profile:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handlePhotoChange = async (e) => {
-    const file = e.target.files[0];
+    loadProfile();
+  }, []);
+
+  /* =========================
+     PHOTO SELECT (NO UPLOAD)
+  ========================= */
+  const handlePhotoChange = (e) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
     if (file.size > MAX_IMAGE_SIZE) {
-      setMessage('Profile photo must be between 1–2 MB');
-      e.target.value = '';
+      setMessage('Profile photo must be under 2 MB');
       return;
     }
 
-    // Preview immediately
+    setPendingPhoto(file);
     setPhotoPreview(URL.createObjectURL(file));
-
-    try {
-      const res = await profileAPI.uploadPhoto(file);
-
-      setFormData((prev) => ({
-        ...prev,
-        profileImage: res.data.profileImage,
-      }));
-    } catch (err) {
-      setMessage('Photo upload failed');
-    }
   };
 
+  /* =========================
+     SAVE PROFILE
+  ========================= */
   const handleSave = async () => {
     try {
       setSaving(true);
       setMessage('');
 
-      await profileAPI.updateProfile(formData);
+      let profileImage = formData.profileImage;
+
+      if (pendingPhoto) {
+        const uploadRes = await profileAPI.uploadPhoto(pendingPhoto);
+        profileImage = uploadRes.data.profileImage;
+      }
+
+      await profileAPI.updateProfile({
+        ...formData,
+        profileImage,
+      });
 
       await updateUser();
 
+      setPendingPhoto(null);
       setPhotoPreview(null);
       setMessage('Profile updated successfully!');
     } catch (err) {
+      console.error(err);
       setMessage('Failed to update profile');
     } finally {
       setSaving(false);
     }
   };
 
-
+  /* =========================
+     TAG HELPERS
+  ========================= */
   const addSkill = () => {
-    if (newSkill.trim() && !formData.skills.includes(newSkill.trim())) {
-      setFormData({
-        ...formData,
-        skills: [...formData.skills, newSkill.trim()]
-      })
-      setNewSkill('')
-    }
-  }
+    if (!newSkill.trim()) return;
+    if (formData.skills.includes(newSkill.trim())) return;
+
+    setFormData(prev => ({
+      ...prev,
+      skills: [...prev.skills, newSkill.trim()],
+    }));
+    setNewSkill('');
+  };
 
   const removeSkill = (skill) => {
-    setFormData({
-      ...formData,
-      skills: formData.skills.filter(s => s !== skill)
-    })
-  }
+    setFormData(prev => ({
+      ...prev,
+      skills: prev.skills.filter(s => s !== skill),
+    }));
+  };
 
   const addInterest = () => {
-    if (newInterest.trim() && !formData.interests.includes(newInterest.trim())) {
-      setFormData({
-        ...formData,
-        interests: [...formData.interests, newInterest.trim()]
-      })
-      setNewInterest('')
-    }
-  }
+    if (!newInterest.trim()) return;
+    if (formData.interests.includes(newInterest.trim())) return;
+
+    setFormData(prev => ({
+      ...prev,
+      interests: [...prev.interests, newInterest.trim()],
+    }));
+    setNewInterest('');
+  };
 
   const removeInterest = (interest) => {
-    setFormData({
-      ...formData,
-      interests: formData.interests.filter(i => i !== interest)
-    })
-  }
+    setFormData(prev => ({
+      ...prev,
+      interests: prev.interests.filter(i => i !== interest),
+    }));
+  };
 
   if (loading) {
     return (
@@ -139,7 +146,7 @@ function Profile() {
         <Navbar />
         <div className="profile-loading">Loading profile...</div>
       </>
-    )
+    );
   }
 
   return (
@@ -147,14 +154,13 @@ function Profile() {
       <Navbar />
       <div className="profile-page">
         <div className="profile-container">
-
           <div className="profile-card">
 
             {/* AVATAR */}
             <div className="avatar-section">
               <img
                 className="profile-avatar"
-                src={getAvatarSrc(photoPreview || formData.profileImage || authUser?.profileImage)}
+                src={getAvatarSrc(photoPreview || formData.profileImage)}
                 alt="Profile"
               />
               <label className="avatar-overlay">
@@ -183,20 +189,26 @@ function Profile() {
               </div>
             )}
 
+            {/* BIO */}
             <div className="form-section">
               <label>Bio</label>
               <textarea
-                value={formData.bio}
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                 rows="4"
+                value={formData.bio}
+                onChange={(e) =>
+                  setFormData({ ...formData, bio: e.target.value })
+                }
               />
             </div>
 
+            {/* AVAILABILITY */}
             <div className="form-section">
               <label>Availability</label>
               <select
                 value={formData.availability}
-                onChange={(e) => setFormData({ ...formData, availability: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, availability: e.target.value })
+                }
               >
                 <option value="High">High</option>
                 <option value="Medium">Medium</option>
@@ -204,6 +216,7 @@ function Profile() {
               </select>
             </div>
 
+            {/* SKILLS */}
             <div className="form-section">
               <label>Skills</label>
               <div className="tag-input">
@@ -214,9 +227,10 @@ function Profile() {
                 />
                 <button onClick={addSkill}>Add</button>
               </div>
+
               <div className="tags-list">
-                {formData.skills.map((skill, idx) => (
-                  <span key={idx} className="tag">
+                {formData.skills.map((skill) => (
+                  <span key={skill} className="tag">
                     {skill}
                     <button onClick={() => removeSkill(skill)}>×</button>
                   </span>
@@ -224,6 +238,7 @@ function Profile() {
               </div>
             </div>
 
+            {/* INTERESTS */}
             <div className="form-section">
               <label>Interests</label>
               <div className="tag-input">
@@ -234,9 +249,10 @@ function Profile() {
                 />
                 <button onClick={addInterest}>Add</button>
               </div>
+
               <div className="tags-list">
-                {formData.interests.map((interest, idx) => (
-                  <span key={idx} className="tag">
+                {formData.interests.map((interest) => (
+                  <span key={interest} className="tag">
                     {interest}
                     <button onClick={() => removeInterest(interest)}>×</button>
                   </span>
@@ -244,15 +260,19 @@ function Profile() {
               </div>
             </div>
 
-            <button className="save-button" onClick={handleSave} disabled={saving}>
-              {saving ? 'Saving...' : 'Save Profile'}
+            <button
+              className="save-button"
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving ? 'Saving…' : 'Save Profile'}
             </button>
 
           </div>
         </div>
       </div>
     </>
-  )
+  );
 }
 
-export default Profile
+export default Profile;

@@ -10,7 +10,7 @@ function Dashboard() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [matchNotification, setMatchNotification] = useState(null)
+  const [matchNotification, setMatchNotification] = useState(false)
   const [teams, setTeams] = useState([]);
   const navigate = useNavigate();
 

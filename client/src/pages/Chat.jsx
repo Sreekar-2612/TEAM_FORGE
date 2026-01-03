@@ -59,10 +59,20 @@ export default function Chat() {
       const prevCount = prevMsgCountRef.current;
       const newCount = newMessages.length;
 
-      setMessages(prev => ({
-        ...prev,
-        [activeId]: newMessages,
-      }));
+      setMessages(prev => {
+        const existing = prev[activeId] || [];
+
+        // Keep optimistic messages not yet confirmed by server
+        const optimistic = existing.filter(
+          m => m._id?.startsWith('temp-')
+        );
+
+        return {
+          ...prev,
+          [activeId]: [...newMessages, ...optimistic],
+        };
+      });
+
 
       // 🔴 ONLY SCROLL IF NEW MESSAGE ARRIVED
       if (newCount > prevCount && shouldAutoScrollRef.current) {
@@ -171,7 +181,13 @@ export default function Chat() {
     scrollBottom();
 
     try {
-      await chatAPI.sendMessage(activeId, optimisticMessage.content);
+      const saved = await chatAPI.sendMessage(activeId, optimisticMessage.content);
+
+      setMessages(prev => ({
+        ...prev,
+        [activeId]: prev[activeId].filter(m => m._id !== tempId),
+      }));
+
     } catch (err) {
       // Optional: remove optimistic message on failure
       setMessages(prev => ({

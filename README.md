@@ -1,203 +1,152 @@
-# Team Forge (CollabQuest) 🔗  
-*A Smart Team Formation Platform for Students*
+# Team Forge (formerly CollabQuest) 🔗
+**A Smart Team Formation & Collaboration Platform for Students**
 
 ---
 
 ## 📌 Project Status
-**Backend: ✅ Complete** | **Frontend: ✅ Complete**
+**Backend: ✅ Production-ready**  
+**Frontend: ✅ Production-ready**
 
-**CollabQuest** is now a full-stack application with a complete React frontend and Node.js/Express backend.  
-The platform includes authentication, user management, swipe-style matching, profile management, and a modern UI.
-
----
-
-## 🚀 Overview
-Team Forge is a smart team-finding platform designed to help students form **balanced, compatible teams** for projects, hackathons, and collaborative learning.  
-Users are matched based on **skills, interests, and availability**, ensuring both technical fit and real-world feasibility.
+Team Forge is a full-stack web application that enables students to discover teammates, form teams, manage approvals, and collaborate inside teams through structured workflows.
 
 ---
 
-## 🧱 Core Infrastructure
+## 🚀 What Team Forge Solves
 
-### Tech Stack
+Finding teammates is easy.  
+Finding compatible, committed, and manageable teams is not.
 
-**Backend:**
-- **Runtime:** Node.js  
-- **Framework:** Express.js  
-- **Database:** MongoDB with Mongoose ODM  
-- **Authentication:** JWT (JSON Web Tokens)  
-- **Security:**  
-  - Password hashing using `bcryptjs`  
-  - Token-based authentication middleware  
-  - CORS enabled for cross-origin requests
+Team Forge solves this by combining:
+- Swipe-based matching (mutual consent)
+- Team-centric invitations
+- Admin-controlled approvals
+- Team chat and project boards
 
-**Frontend:**
-- **Framework:** React 18
-- **Build Tool:** Vite
-- **Routing:** React Router
-- **HTTP Client:** Axios
-- **Styling:** Modern CSS with gradient designs  
+Teams form intentionally, not randomly.
 
 ---
 
-## 🗄️ Database Schemas (MongoDB)
+## 🧠 Core Concepts
 
-### 1. User
-Stores complete user profile information.
-- Name, email, password (hashed)
-- Skills (array of tags)
-- Interests (array of tags)
-- Availability (hours per week)
-- Bio
-- Role (user / admin)
-- Timestamps
+### 1. User-first matching
+Users match before teams form. Mutual likes create a match and a conversation.
 
----
+### 2. Teams as private workspaces
+Each team has:
+- Members and admin
+- Capacity limits
+- Invite policies
+- Pending join requests
 
-### 2. Team
-Manages team-related data.
-- Team name
-- Members (user references)
-- Required skills
-- Created date
+### 3. Admin approval (optional)
+Teams can enforce:
+- Open joining
+- Admin-approved joining
 
 ---
 
-### 3. Interaction
-Tracks user swipe actions for matching logic.
-- User (who swiped)
-- Target user
-- Action (`like` / `pass`)
-- Timestamp
+## 🧱 Tech Stack
+
+### Backend
+- Node.js
+- Express.js
+- MongoDB + Mongoose
+- JWT Authentication
+- bcryptjs
+- REST APIs
+
+### Frontend
+- React 18
+- Vite
+- React Router
+- Axios
+- Context API
+- Modern CSS
 
 ---
 
-### 4. Message
-Schema for team-based chat functionality.
-- Team reference
-- Sender reference
-- Message content
-- Timestamp
+## 🗄️ Database Models
+
+### User
+- fullName, email, password (hashed)
+- skills, interests, availability
+- profileImage
+- teams
+- timestamps
+
+### Interaction
+- senderId
+- receiverId
+- type (like/pass)
+
+### Conversation
+- participants
+- lastMessage
+- unread counts
+
+### Team
+- name, admin, members
+- maxMembers
+- invitePolicy
+- invite tokens
+- pendingInvites
+- cooldowns
+
+### TeamMessage
+- teamId
+- senderId
+- content
+- timestamps
+
+### TeamProject
+- tasks
+- status
+- progress
+- colors
 
 ---
 
-## 🔌 Implemented API Endpoints
+## 🔌 Key Features
 
-### 🔐 Authentication (`/api/auth`)
+### Authentication
+- Secure signup/login
+- JWT-protected routes
 
-| Method | Endpoint | Description |
-|------|---------|------------|
-| POST | `/signup` | Register a new user with hashed password |
-| POST | `/login` | Authenticate user and return JWT token |
+### Profile Management
+- Edit skills and interests
+- Upload profile image
 
----
+### Matching System
+- Swipe-based discovery
+- Mutual like = match + chat
 
-### 👤 User Profile (`/api/user`)
+### Chat System
+- 1-to-1 matched chat
+- Unread counts
+- Optimistic UI
 
-| Method | Endpoint | Description |
-|------|---------|------------|
-| GET | `/me` | Fetch logged-in user’s private profile |
-| PUT | `/me` | Update profile (skills, interests, bio, availability) |
-| GET | `/:id` | View public profile of another user |
+### Teams
+- Create and manage teams
+- Invite matched users
+- Admin approvals
+- Join via invite links
 
----
+### Team Chat
+- Persistent messages
+- Member-only access
 
-### 🤝 Matching System (`/api/matches`)
-
-| Method | Endpoint | Description |
-|------|---------|------------|
-| GET | `/candidates` | Fetch ranked list of compatible users |
-| POST | `/swipe` | Record a "Like" or "Pass" action |
-
-#### Compatibility Algorithm
-Matches are ranked using a **rule-based scoring system**:
-
-
-- Skill overlap + complementarity
-- Shared interests and goals
-- Realistic time commitment alignment
-- Mutual likes trigger a match
+### Project Board
+- Task creation
+- Progress tracking
+- Status updates
 
 ---
 
-## 🔒 Security Highlights
-- Passwords are never stored in plain text
-- JWT-based route protection using middleware
-- Secure user-specific data access
-- Input validation and structured schemas
-
----
-
-## 🎨 Frontend Features
-
-- **Authentication Pages** - Beautiful login and signup forms
-- **Swipe-Style Matching** - Tinder-like interface for discovering teammates
-- **Profile Management** - Edit skills, interests, bio, and availability
-- **Matches View** - See all your mutual matches
-- **Chat Interface** - Ready for team-based messaging (UI complete, backend integration pending)
-- **Responsive Design** - Works on desktop and mobile devices
-- **Modern UI** - Gradient designs, smooth animations, and intuitive UX
-
-## 📈 What's Next (Planned)
-- Team-based real-time chat backend integration
-- Notifications for matches & invitations
-- AI-based compatibility improvements
-- Role-based access control
-- Project board functionality
-
----
-
-
-
-## 🛠️ Getting Started
-
-### Prerequisites
-- Node.js (v14 or higher)
-- MongoDB (local or Atlas)
-
-### Backend Setup
-
-```bash
-cd server
-npm install
-
-# Create .env file with:
-# MONGO_URI=your_mongodb_connection_string
-# JWT_SECRET=your_secret_key
-# PORT=5000
-
-npm run dev
-```
-
-Backend will run on `http://localhost:5000`
-
-### Frontend Setup
-
-```bash
-cd client
-npm install
-npm run dev
-```
-
-Frontend will run on `http://localhost:3000`
-
-### Full Stack Development
-
-Run both servers simultaneously:
-
-**Terminal 1 (Backend):**
-```bash
-cd server
-npm run dev
-```
-
-**Terminal 2 (Frontend):**
-```bash
-cd client
-npm run dev
-```
-
-Visit `http://localhost:3000` to use the application!
+## 🔒 Security
+- Hashed passwords
+- JWT middleware
+- Admin-only enforcement
+- Invite cooldowns
 
 ---
 
@@ -205,18 +154,48 @@ Visit `http://localhost:3000` to use the application!
 
 ```
 TEAM_FORGE/
-├── server/          # Backend (Node.js/Express)
-│   ├── config/      # Database configuration
-│   ├── middleware/  # Auth middleware
-│   ├── models/      # MongoDB models
-│   ├── routes/      # API routes
-│   └── server.js     # Entry point
-└── client/          # Frontend (React)
+├── server/
+│   ├── config/
+│   ├── middleware/
+│   ├── models/
+│   ├── routes/
+│   └── server.js
+└── client/
     ├── src/
-    │   ├── components/  # React components
-    │   ├── pages/       # Page components
-    │   ├── context/     # React Context
-    │   └── services/    # API services
+    │   ├── components/
+    │   ├── pages/
+    │   ├── context/
+    │   └── services/
     └── package.json
 ```
 
+---
+
+## 🛠️ Setup
+
+### Backend
+```
+cd server
+npm install
+npm run dev
+```
+
+### Frontend
+```
+cd client
+npm install
+npm run dev
+```
+
+---
+
+## 📈 Future Improvements
+- Real-time chat (WebSockets)
+- Notifications
+- AI-based team optimization
+- Organization-level teams
+
+---
+
+## ✅ Summary
+Team Forge is a complete, scalable system for intentional team formation and collaboration.

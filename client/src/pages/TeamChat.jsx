@@ -43,6 +43,15 @@ export default function TeamChat() {
     }, [teamId]);
 
     useEffect(() => {
+        if (!team) return;
+        if (String(adminId) !== String(user._id)) return;
+
+        loadPendingInvites();
+    }, [team?._id]);
+
+
+
+    useEffect(() => {
         const loadMatches = async () => {
             try {
                 const res = await chatAPI.getMatches();
@@ -289,8 +298,9 @@ export default function TeamChat() {
                 {showInvite && (
                     <InviteModal
                         team={team}
-                        matches={matches}                 
-                        currentUserId={user._id}          
+                        matches={matches}
+                        pendingInvites={pendingInvites}
+                        currentUserId={user._id}
                         onClose={() => setShowInvite(false)}
                     />
                 )}

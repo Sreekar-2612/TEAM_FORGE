@@ -6,6 +6,7 @@ import './InviteModal.css';
 export default function InviteModal({
     team,
     matches = [],
+    pendingInvites = [],
     currentUserId,
     onClose,
 }) {
@@ -23,7 +24,11 @@ export default function InviteModal({
         (team.members || []).map(m => String(m._id))
     );
 
-    // ✅ Correct: extract the OTHER user from each conversation
+    const pendingIds = new Set(
+        pendingInvites.map(i => String(i.user?._id || i.user))
+    );
+
+
     const eligibleUsers = useMemo(() => {
         return matches
             .map(c => {
@@ -33,8 +38,12 @@ export default function InviteModal({
                 );
             })
             .filter(Boolean)
-            .filter(u => !teamMemberIds.has(String(u._id)));
-    }, [matches, teamMemberIds, currentUserId]);
+            .filter(u =>
+                !teamMemberIds.has(String(u._id)) &&
+                !pendingIds.has(String(u._id)) // 🔥 THIS WAS MISSING
+            );
+    }, [matches, teamMemberIds, pendingIds, currentUserId]);
+
 
     const invite = async (userId) => {
         try {

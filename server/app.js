@@ -16,7 +16,7 @@ const app = express();
 app.use(express.json());
 
 const allowedOrigins = [
-    'https://team-forge-frontend.vercel.app/',
+    'https://team-forge-frontend.vercel.app',
     'http://localhost:5173',
 ];
 
